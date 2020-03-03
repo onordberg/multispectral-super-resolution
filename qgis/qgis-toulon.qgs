@@ -1,0 +1,349 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis projectname="" version="2.18.17">
+  <title></title>
+  <autotransaction active="0"/>
+  <evaluateDefaultValues active="0"/>
+  <layer-tree-group expanded="1" checked="Qt::PartiallyChecked" name="">
+    <customproperties/>
+    <layer-tree-layer expanded="1" providerKey="gdal" checked="Qt::Checked" id="13OCT09105024_P2AS_011651061010_01_P00120200303152914487" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_PAN/13OCT09105024-P2AS-011651061010_01_P001.TIF" name="pan">
+      <customproperties/>
+    </layer-tree-layer>
+    <layer-tree-layer expanded="1" providerKey="gdal" checked="Qt::Unchecked" id="13OCT09105024_M2AS_011651061010_01_P00120200303153334652" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF" name="1">
+      <customproperties/>
+    </layer-tree-layer>
+    <layer-tree-layer expanded="1" providerKey="gdal" checked="Qt::Unchecked" id="13OCT09105024_M2AS_011651061010_01_P001_copy20200303153638053" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF" name="2">
+      <customproperties/>
+    </layer-tree-layer>
+    <layer-tree-layer expanded="1" providerKey="gdal" checked="Qt::Checked" id="2_copy20200303153838965" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF" name="2 copy">
+      <customproperties/>
+    </layer-tree-layer>
+  </layer-tree-group>
+  <relations/>
+  <mapcanvas>
+    <units>meters</units>
+    <extent>
+      <xmin>738361.61146331671625376</xmin>
+      <ymin>4778230.48938116524368525</ymin>
+      <xmax>738670.83646331657655537</xmax>
+      <ymax>4778421.85188116598874331</ymax>
+    </extent>
+    <rotation>0</rotation>
+    <projections>0</projections>
+    <destinationsrs>
+      <spatialrefsys>
+        <proj4>+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs</proj4>
+        <srsid>3115</srsid>
+        <srid>32631</srid>
+        <authid>EPSG:32631</authid>
+        <description>WGS 84 / UTM zone 31N</description>
+        <projectionacronym>utm</projectionacronym>
+        <ellipsoidacronym>WGS84</ellipsoidacronym>
+        <geographicflag>false</geographicflag>
+      </spatialrefsys>
+    </destinationsrs>
+    <rendermaptile>0</rendermaptile>
+    <layer_coordinate_transform_info/>
+  </mapcanvas>
+  <layer-tree-canvas>
+    <custom-order enabled="0">
+      <item>13OCT09105024_P2AS_011651061010_01_P00120200303152914487</item>
+      <item>13OCT09105024_M2AS_011651061010_01_P00120200303153334652</item>
+      <item>13OCT09105024_M2AS_011651061010_01_P001_copy20200303153638053</item>
+      <item>2_copy20200303153838965</item>
+    </custom-order>
+  </layer-tree-canvas>
+  <legend updateDrawingOrder="true">
+    <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="pan" showFeatureCount="0">
+      <filegroup open="true" hidden="false">
+        <legendlayerfile isInOverview="0" layerid="13OCT09105024_P2AS_011651061010_01_P00120200303152914487" visible="1"/>
+      </filegroup>
+    </legendlayer>
+    <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="1" showFeatureCount="0">
+      <filegroup open="true" hidden="false">
+        <legendlayerfile isInOverview="0" layerid="13OCT09105024_M2AS_011651061010_01_P00120200303153334652" visible="0"/>
+      </filegroup>
+    </legendlayer>
+    <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="2" showFeatureCount="0">
+      <filegroup open="true" hidden="false">
+        <legendlayerfile isInOverview="0" layerid="13OCT09105024_M2AS_011651061010_01_P001_copy20200303153638053" visible="0"/>
+      </filegroup>
+    </legendlayer>
+    <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="2 copy" showFeatureCount="0">
+      <filegroup open="true" hidden="false">
+        <legendlayerfile isInOverview="0" layerid="2_copy20200303153838965" visible="1"/>
+      </filegroup>
+    </legendlayer>
+  </legend>
+  <projectlayers>
+    <maplayer minimumScale="inf" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+      <extent>
+        <xmin>734208</xmin>
+        <ymin>4775958</ymin>
+        <xmax>738920</xmax>
+        <ymax>4778874</ymax>
+      </extent>
+      <id>13OCT09105024_M2AS_011651061010_01_P00120200303153334652</id>
+      <datasource>/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF</datasource>
+      <keywordList>
+        <value></value>
+      </keywordList>
+      <layername>1</layername>
+      <srs>
+        <spatialrefsys>
+          <proj4>+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs</proj4>
+          <srsid>3115</srsid>
+          <srid>32631</srid>
+          <authid>EPSG:32631</authid>
+          <description>WGS 84 / UTM zone 31N</description>
+          <projectionacronym>utm</projectionacronym>
+          <ellipsoidacronym>WGS84</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <customproperties>
+        <property key="embeddedWidgets/count" value="0"/>
+        <property key="identify/format" value="Value"/>
+      </customproperties>
+      <provider>gdal</provider>
+      <noData>
+        <noDataList bandNo="1" useSrcNoData="0"/>
+        <noDataList bandNo="2" useSrcNoData="0"/>
+        <noDataList bandNo="3" useSrcNoData="0"/>
+        <noDataList bandNo="4" useSrcNoData="0"/>
+        <noDataList bandNo="5" useSrcNoData="0"/>
+        <noDataList bandNo="6" useSrcNoData="0"/>
+        <noDataList bandNo="7" useSrcNoData="0"/>
+        <noDataList bandNo="8" useSrcNoData="0"/>
+      </noData>
+      <map-layer-style-manager current="">
+        <map-layer-style name=""/>
+      </map-layer-style-manager>
+      <pipe>
+        <rasterrenderer opacity="1" alphaBand="-1" classificationMax="646" classificationMinMaxOrigin="CumulativeCutFullExtentEstimated" band="1" classificationMin="350" type="singlebandpseudocolor">
+          <rasterTransparency/>
+          <rastershader>
+            <colorrampshader colorRampType="INTERPOLATED" clip="0">
+              <item alpha="255" value="0" label="0" color="#050505"/>
+              <item alpha="255" value="1500" label="1500" color="#fafafa"/>
+            </colorrampshader>
+          </rastershader>
+        </rasterrenderer>
+        <brightnesscontrast brightness="0" contrast="0"/>
+        <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+        <rasterresampler maxOversampling="2"/>
+      </pipe>
+      <blendMode>0</blendMode>
+    </maplayer>
+    <maplayer minimumScale="inf" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+      <extent>
+        <xmin>734208</xmin>
+        <ymin>4775958</ymin>
+        <xmax>738920</xmax>
+        <ymax>4778874</ymax>
+      </extent>
+      <id>13OCT09105024_M2AS_011651061010_01_P001_copy20200303153638053</id>
+      <datasource>/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF</datasource>
+      <keywordList>
+        <value></value>
+      </keywordList>
+      <layername>2</layername>
+      <srs>
+        <spatialrefsys>
+          <proj4>+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs</proj4>
+          <srsid>3115</srsid>
+          <srid>32631</srid>
+          <authid>EPSG:32631</authid>
+          <description>WGS 84 / UTM zone 31N</description>
+          <projectionacronym>utm</projectionacronym>
+          <ellipsoidacronym>WGS84</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <customproperties>
+        <property key="embeddedWidgets/count" value="0"/>
+        <property key="identify/format" value="Value"/>
+      </customproperties>
+      <provider>gdal</provider>
+      <noData>
+        <noDataList bandNo="1" useSrcNoData="0"/>
+        <noDataList bandNo="2" useSrcNoData="0"/>
+        <noDataList bandNo="3" useSrcNoData="0"/>
+        <noDataList bandNo="4" useSrcNoData="0"/>
+        <noDataList bandNo="5" useSrcNoData="0"/>
+        <noDataList bandNo="6" useSrcNoData="0"/>
+        <noDataList bandNo="7" useSrcNoData="0"/>
+        <noDataList bandNo="8" useSrcNoData="0"/>
+      </noData>
+      <map-layer-style-manager current="">
+        <map-layer-style name=""/>
+      </map-layer-style-manager>
+      <pipe>
+        <rasterrenderer opacity="1" alphaBand="-1" classificationMax="646" classificationMinMaxOrigin="CumulativeCutFullExtentEstimated" band="8" classificationMin="350" type="singlebandpseudocolor">
+          <rasterTransparency/>
+          <rastershader>
+            <colorrampshader colorRampType="INTERPOLATED" clip="0">
+              <item alpha="255" value="0" label="0" color="#050505"/>
+              <item alpha="255" value="1500" label="1500" color="#fafafa"/>
+            </colorrampshader>
+          </rastershader>
+        </rasterrenderer>
+        <brightnesscontrast brightness="0" contrast="0"/>
+        <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+        <rasterresampler maxOversampling="2"/>
+      </pipe>
+      <blendMode>0</blendMode>
+    </maplayer>
+    <maplayer minimumScale="inf" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+      <extent>
+        <xmin>734208</xmin>
+        <ymin>4775958</ymin>
+        <xmax>738920</xmax>
+        <ymax>4778874</ymax>
+      </extent>
+      <id>13OCT09105024_P2AS_011651061010_01_P00120200303152914487</id>
+      <datasource>/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_PAN/13OCT09105024-P2AS-011651061010_01_P001.TIF</datasource>
+      <keywordList>
+        <value></value>
+      </keywordList>
+      <layername>pan</layername>
+      <srs>
+        <spatialrefsys>
+          <proj4>+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs</proj4>
+          <srsid>3115</srsid>
+          <srid>32631</srid>
+          <authid>EPSG:32631</authid>
+          <description>WGS 84 / UTM zone 31N</description>
+          <projectionacronym>utm</projectionacronym>
+          <ellipsoidacronym>WGS84</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <customproperties>
+        <property key="embeddedWidgets/count" value="0"/>
+        <property key="identify/format" value="Value"/>
+      </customproperties>
+      <provider>gdal</provider>
+      <noData>
+        <noDataList bandNo="1" useSrcNoData="0"/>
+      </noData>
+      <map-layer-style-manager current="">
+        <map-layer-style name=""/>
+      </map-layer-style-manager>
+      <pipe>
+        <rasterrenderer gradient="BlackToWhite" opacity="1" alphaBand="0" type="singlebandgray" grayBand="1">
+          <rasterTransparency/>
+          <contrastEnhancement>
+            <minValue>0</minValue>
+            <maxValue>1500</maxValue>
+            <algorithm>StretchToMinimumMaximum</algorithm>
+          </contrastEnhancement>
+        </rasterrenderer>
+        <brightnesscontrast brightness="0" contrast="0"/>
+        <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+        <rasterresampler maxOversampling="2"/>
+      </pipe>
+      <blendMode>0</blendMode>
+    </maplayer>
+    <maplayer minimumScale="inf" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
+      <extent>
+        <xmin>734208</xmin>
+        <ymin>4775958</ymin>
+        <xmax>738920</xmax>
+        <ymax>4778874</ymax>
+      </extent>
+      <id>2_copy20200303153838965</id>
+      <datasource>/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF</datasource>
+      <keywordList>
+        <value></value>
+      </keywordList>
+      <layername>2 copy</layername>
+      <srs>
+        <spatialrefsys>
+          <proj4>+proj=utm +zone=31 +datum=WGS84 +units=m +no_defs</proj4>
+          <srsid>3115</srsid>
+          <srid>32631</srid>
+          <authid>EPSG:32631</authid>
+          <description>WGS 84 / UTM zone 31N</description>
+          <projectionacronym>utm</projectionacronym>
+          <ellipsoidacronym>WGS84</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <customproperties>
+        <property key="embeddedWidgets/count" value="0"/>
+        <property key="identify/format" value="Value"/>
+      </customproperties>
+      <provider>gdal</provider>
+      <noData>
+        <noDataList bandNo="1" useSrcNoData="0"/>
+        <noDataList bandNo="2" useSrcNoData="0"/>
+        <noDataList bandNo="3" useSrcNoData="0"/>
+        <noDataList bandNo="4" useSrcNoData="0"/>
+        <noDataList bandNo="5" useSrcNoData="0"/>
+        <noDataList bandNo="6" useSrcNoData="0"/>
+        <noDataList bandNo="7" useSrcNoData="0"/>
+        <noDataList bandNo="8" useSrcNoData="0"/>
+      </noData>
+      <map-layer-style-manager current="">
+        <map-layer-style name=""/>
+      </map-layer-style-manager>
+      <pipe>
+        <rasterrenderer gradient="BlackToWhite" opacity="1" alphaBand="0" type="singlebandgray" grayBand="1">
+          <rasterTransparency/>
+          <contrastEnhancement>
+            <minValue>0</minValue>
+            <maxValue>1500</maxValue>
+            <algorithm>StretchToMinimumMaximum</algorithm>
+          </contrastEnhancement>
+        </rasterrenderer>
+        <brightnesscontrast brightness="0" contrast="0"/>
+        <huesaturation colorizeGreen="128" colorizeOn="0" colorizeRed="255" colorizeBlue="128" grayscaleMode="0" saturation="0" colorizeStrength="100"/>
+        <rasterresampler maxOversampling="2"/>
+      </pipe>
+      <blendMode>0</blendMode>
+    </maplayer>
+  </projectlayers>
+  <properties>
+    <Measurement>
+      <DistanceUnits type="QString"></DistanceUnits>
+      <AreaUnits type="QString"></AreaUnits>
+    </Measurement>
+    <SpatialRefSys>
+      <ProjectCRSProj4String type="QString">+proj=longlat +datum=WGS84 +no_defs</ProjectCRSProj4String>
+      <ProjectCrs type="QString">EPSG:4326</ProjectCrs>
+      <ProjectCRSID type="int">3452</ProjectCRSID>
+    </SpatialRefSys>
+    <Paths>
+      <Absolute type="bool">false</Absolute>
+    </Paths>
+    <Gui>
+      <SelectionColorBluePart type="int">0</SelectionColorBluePart>
+      <CanvasColorGreenPart type="int">255</CanvasColorGreenPart>
+      <CanvasColorRedPart type="int">255</CanvasColorRedPart>
+      <SelectionColorRedPart type="int">255</SelectionColorRedPart>
+      <SelectionColorAlphaPart type="int">255</SelectionColorAlphaPart>
+      <SelectionColorGreenPart type="int">255</SelectionColorGreenPart>
+      <CanvasColorBluePart type="int">255</CanvasColorBluePart>
+    </Gui>
+    <Digitizing>
+      <DefaultSnapToleranceUnit type="int">2</DefaultSnapToleranceUnit>
+      <LayerSnappingList type="QStringList"/>
+      <LayerSnappingEnabledList type="QStringList"/>
+      <SnappingMode type="QString">current_layer</SnappingMode>
+      <AvoidIntersectionsList type="QStringList"/>
+      <LayerSnappingToleranceUnitList type="QStringList"/>
+      <LayerSnapToList type="QStringList"/>
+      <DefaultSnapType type="QString">off</DefaultSnapType>
+      <DefaultSnapTolerance type="double">0</DefaultSnapTolerance>
+      <LayerSnappingToleranceList type="QStringList"/>
+    </Digitizing>
+    <PositionPrecision>
+      <DecimalPlaces type="int">2</DecimalPlaces>
+      <Automatic type="bool">true</Automatic>
+    </PositionPrecision>
+    <Legend>
+      <filterByMap type="bool">false</filterByMap>
+    </Legend>
+  </properties>
+  <visibility-presets/>
+</qgis>
