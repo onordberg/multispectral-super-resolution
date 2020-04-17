@@ -22,6 +22,7 @@ The actual thesis is located in a separate private repository https://github.com
 - [ ] Do relevant tutorials in the book *Generative Deep Learning* by David Foster http://shop.oreilly.com/product/0636920189817.do
 
 ### Next
+- [ ] Clarify satellite publication restrictions (copyright etc.)
 - [ ] Implement a *simple* SR model on *simple* datasets like MNIST, CIFAR-10 etc.
 - [ ] Write data generation functions for extracting tiles from satellite imagery
 - [ ] Write *Introduction* chapter of thesis
