@@ -11,6 +11,9 @@ The actual thesis is located in a separate private repository https://github.com
 - [x] Write and send project description for approval by institute
 - [x] Set up compute environment on *Durin* and *Dvalin* (desktop computers with RTX 2080 Ti card)
 - [x] Set up repositories for thesis and code
+- [x] Draw two WV02 images of Toulon for early trials
+  - `WV02_Toulon_2013_03_16_011651062010_0` and `WV02_Toulon_2019_08_04_011650878010_0`
+  - (see [`data-exploration-display-version.ipynb`](https://github.com/onordberg/multispectral-super-resolution/blob/master/data-exploration-display-version.ipynb) for random draw)
 
 ### Work in progress
 - [ ] Identify significant litterature on SR and especially on SR of sat images
