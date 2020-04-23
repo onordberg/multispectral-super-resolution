@@ -3,6 +3,8 @@ This is a private working repository for my master's project: *Super-resolution 
 
 The actual thesis is located in a separate private repository https://github.com/onordberg/thesis
 
+**Note:** Jupyter Notebook files named `*-display-version.ipynb` have cell outputs and it is recommended to view these if you want to see output of code.
+
 ## Task list
 
 ### Done
