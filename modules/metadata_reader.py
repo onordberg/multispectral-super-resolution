@@ -20,24 +20,24 @@ def is_panchromatic_product(xml_node):
             return True
     return False
 
-def xml_root_children_to_dict(xml_root_element):
+def xml_root_children_to_dict(xml_root_element, xmlns):
     """Iterates through children of xml root. Returns dictionary."""
     d = {}
     for child in xml_root_element:
-        d[remove_xmlns(child.tag, XMLNS)] = child.text
+        d[remove_xmlns(child.tag, xmlns)] = child.text
     return d
 
-def xml_product_to_dict(xml_product_element):
+def xml_product_to_dict(xml_product_element, xmlns):
     """Parses the <product> element of metadata xml file into dictionary."""
     d = {}
     count_strip, count_product, count_band = 0, 0, 0
     for prod_child in xml_product_element:
-        prod_child_tag = remove_xmlns(prod_child.tag, XMLNS)
+        prod_child_tag = remove_xmlns(prod_child.tag, xmlns)
         if prod_child_tag == 'strip':
-            d[prod_child_tag+str(count_strip)] = xml_root_children_to_dict(prod_child)
+            d[prod_child_tag+str(count_strip)] = xml_root_children_to_dict(prod_child, xmlns)
             count_strip += 1
         elif prod_child_tag == 'productFile':
-            d[prod_child_tag+str(count_product)] = xml_root_children_to_dict(prod_child)
+            d[prod_child_tag+str(count_product)] = xml_root_children_to_dict(prod_child, xmlns)
             count_product += 1
         elif prod_child_tag == 'band':
             d[prod_child_tag+str(count_band)] = prod_child.text
@@ -49,29 +49,31 @@ def xml_product_to_dict(xml_product_element):
     d['n_strips'] = count_strip
     return d
 
-def xml_metadata_to_dict(path):
+def xml_metadata_to_dict(path, xmlns):
     """Parses a metadata xml file into two dictionaries, a panchromatic and a multispectral."""
     d_pan, d_ms, d_mutual = {}, {}, {}
     xml_parsed = ET.parse(path)
     for child in xml_parsed.getroot():
-        child_tag = remove_xmlns(child.tag, XMLNS)
+        child_tag = remove_xmlns(child.tag, xmlns)
         if child_tag == 'product':
             if is_panchromatic_product(child):
-                d_pan = xml_product_to_dict(child)
+                d_pan = xml_product_to_dict(child, xmlns)
             else: 
-                d_ms = xml_product_to_dict(child)
+                d_ms = xml_product_to_dict(child, xmlns)
         else:
             d_mutual[child_tag] = child.text
     d_pan.update(d_mutual), d_ms.update(d_mutual)
     return d_pan, d_ms
 
-def img_metadata_to_dict(metadata_name, data_path):
+def img_metadata_to_dict(metadata_name, data_path, xmlns, path_is_relative = True):
     """Parses all metadata xml files into a dictionary of dictionaries. Returns pan and ms dict."""
+    if path_is_relative:
+        data_path = os.path.join(os.getcwd(), data_path) # Make absolute
     img_metadata_pan, img_metadata_ms = {}, {}
-    img_list = os.listdir(DATA_PATH)
+    img_list = os.listdir(data_path)
     for img in img_list:
-        path_to_metadata_files = find(METADATA_NAME, str(DATA_PATH + img))
-        img_metadata_pan[img], img_metadata_ms[img] = xml_metadata_to_dict(path_to_metadata_files)
+        path_to_metadata_files = find(metadata_name, os.path.join(data_path, img))
+        img_metadata_pan[img], img_metadata_ms[img] = xml_metadata_to_dict(path_to_metadata_files, xmlns)
     return img_metadata_pan, img_metadata_ms
 
 def add_names_to_metadata_dict(metadata_dictionary, list_of_area_names):
