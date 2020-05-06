@@ -12,7 +12,7 @@ def find(name, path):
     """Returns path of file if found in a directory."""
     for root, dirs, files in os.walk(path):
         if name in files:
-            return os.path.join(root, name)
+            return pathlib.Path(root, name)
 
 def is_panchromatic_product(xml_node):
     """Checks whether a satellite product is panchromatic."""
@@ -73,10 +73,10 @@ def get_tif_path(metadata_dict, metadata_path, pan_or_ms):
         productfile = 'productFile28'
     else:
         raise ValueError('pan_or_ms argument must be eiter "pan" or "ms"')
-    
+    metadata_dir_path = metadata_path.parent
     tif_path = metadata_dict[productfile]['relativeDirectory']
     tif_filename = metadata_dict[productfile]['filename']
-    return pathlib.Path(metadata_path, tif_path, tif_filename)
+    return pathlib.Path(metadata_dir_path, tif_path, tif_filename)
 
 def img_metadata_to_dict(metadata_name, data_path, xmlns, path_is_relative = True):
     """Parses all metadata xml files into a dictionary of dictionaries. Returns pan and ms dict."""
@@ -89,7 +89,7 @@ def img_metadata_to_dict(metadata_name, data_path, xmlns, path_is_relative = Tru
         metadata_path = find(metadata_name, data_path.joinpath(img))
         img_metadata_pan[img], img_metadata_ms[img] = xml_metadata_to_dict(metadata_path, xmlns)
         img_metadata_pan[img]['tif_path'] = get_tif_path(img_metadata_pan[img], metadata_path, 'pan')
-        img_metadata_ms[img]['tif_path'] = get_tif_path(img_metadata_pan[img], metadata_path, 'ms')
+        img_metadata_ms[img]['tif_path'] = get_tif_path(img_metadata_ms[img], metadata_path, 'ms')
     return img_metadata_pan, img_metadata_ms
 
 def add_names_to_metadata_dict(metadata_dictionary, list_of_area_names):
