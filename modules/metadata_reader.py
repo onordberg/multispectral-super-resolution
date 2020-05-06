@@ -1,6 +1,7 @@
 import pandas as pd
 import xml.etree.ElementTree as ET
 import os
+import pathlib
 
 def remove_xmlns(string, xmlns):
     """Removes a specified xmlns url from a string."""
@@ -65,15 +66,30 @@ def xml_metadata_to_dict(path, xmlns):
     d_pan.update(d_mutual), d_ms.update(d_mutual)
     return d_pan, d_ms
 
+def get_tif_path(metadata_dict, metadata_path, pan_or_ms):
+    if pan_or_ms == 'pan':
+        productfile = 'productFile29'
+    elif pan_or_ms == 'ms':
+        productfile = 'productFile28'
+    else:
+        raise ValueError('pan_or_ms argument must be eiter "pan" or "ms"')
+    
+    tif_path = metadata_dict[productfile]['relativeDirectory']
+    tif_filename = metadata_dict[productfile]['filename']
+    return pathlib.Path(metadata_path, tif_path, tif_filename)
+
 def img_metadata_to_dict(metadata_name, data_path, xmlns, path_is_relative = True):
     """Parses all metadata xml files into a dictionary of dictionaries. Returns pan and ms dict."""
+    data_path = pathlib.Path(data_path)
     if path_is_relative:
-        data_path = os.path.join(os.getcwd(), data_path) # Make absolute
+        data_path = pathlib.Path(pathlib.Path.cwd(), data_path) # Make absolute
     img_metadata_pan, img_metadata_ms = {}, {}
     img_list = os.listdir(data_path)
     for img in img_list:
-        path_to_metadata_files = find(metadata_name, os.path.join(data_path, img))
-        img_metadata_pan[img], img_metadata_ms[img] = xml_metadata_to_dict(path_to_metadata_files, xmlns)
+        metadata_path = find(metadata_name, data_path.joinpath(img))
+        img_metadata_pan[img], img_metadata_ms[img] = xml_metadata_to_dict(metadata_path, xmlns)
+        img_metadata_pan[img]['tif_path'] = get_tif_path(img_metadata_pan[img], metadata_path, 'pan')
+        img_metadata_ms[img]['tif_path'] = get_tif_path(img_metadata_pan[img], metadata_path, 'ms')
     return img_metadata_pan, img_metadata_ms
 
 def add_names_to_metadata_dict(metadata_dictionary, list_of_area_names):
