@@ -140,4 +140,6 @@ def dict_to_df(img_metadata_dict):
     img_metadata_df['productionDate'] = pd.to_datetime(img_metadata_df['productionDate'])
     img_metadata_df['updateDate'] = pd.to_datetime(img_metadata_df['updateDate'])
 
+    # Adding unique IDs of dtype int (useful in TensorFlow)
+    img_metadata_df['int_uid'] = list(range(len(img_metadata_df.index)))
     return img_metadata_df
