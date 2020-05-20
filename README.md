@@ -17,6 +17,7 @@ The actual thesis is located in a separate private repository https://github.com
   - `WV02_Toulon_2013_03_16_011651062010_0` and `WV02_Toulon_2019_08_04_011650878010_0`
   - (see [`data-exploration-display-version.ipynb`](https://github.com/onordberg/multispectral-super-resolution/blob/master/data-exploration-display-version.ipynb) for random draw)
 - [X] Implement a *simple* SR model, [SRCNN](https://arxiv.org/pdf/1501.00092v3.pdf), on *simple* datasets like MNIST and CIFAR-10
+- [X] Manually assess cloud conditions on each image by roughly annotating vector polygons around clouds
 
 ### Work in progress
 - [ ] Identify significant litterature on SR and especially on SR of sat images
@@ -31,7 +32,7 @@ The actual thesis is located in a separate private repository https://github.com
 - [ ] Write *Introduction* chapter of thesis
 
 ### Next
-- [ ] Manually assess cloud conditions on a course scale [0-5%, 5-25%, 25-75%, 75-95%, 95-100%]
+
 - [ ] If appropriate: Use automatic cloud classification from FFI
 - [ ] Decide on training, validation and test split
 - [ ] Clarify satellite publication restrictions (copyright etc.)
