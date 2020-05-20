@@ -5,7 +5,7 @@
   <evaluateDefaultValues active="0"/>
   <layer-tree-group expanded="1" checked="Qt::PartiallyChecked" name="">
     <customproperties/>
-    <layer-tree-layer expanded="1" providerKey="gdal" checked="Qt::Unchecked" id="13OCT09105024_P2AS_011651061010_01_P00120200303152914487" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_PAN/13OCT09105024-P2AS-011651061010_01_P001.TIF" name="pan">
+    <layer-tree-layer expanded="1" providerKey="gdal" checked="Qt::Checked" id="13OCT09105024_P2AS_011651061010_01_P00120200303152914487" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_PAN/13OCT09105024-P2AS-011651061010_01_P001.TIF" name="pan">
       <customproperties/>
     </layer-tree-layer>
     <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="13OCT09105024_M2AS_011651061010_01_P00120200303153334652" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF" name="1">
@@ -29,7 +29,7 @@
     <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="6_copy20200304003027899" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF" name="7">
       <customproperties/>
     </layer-tree-layer>
-    <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Checked" id="7_copy20200304003043987" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF" name="8">
+    <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="7_copy20200304003043987" source="/media/landet/Data/master/data/WV02_Toulon_2013_10_09_011651061010_0/011651061010_01_003/011651061010_01_003/011651061010_01/011651061010_01_P001_MUL/13OCT09105024-M2AS-011651061010_01_P001.TIF" name="8">
       <customproperties/>
     </layer-tree-layer>
   </layer-tree-group>
@@ -37,10 +37,10 @@
   <mapcanvas>
     <units>meters</units>
     <extent>
-      <xmin>737978.29683580901473761</xmin>
-      <ymin>4777899.01979721244424582</ymin>
-      <xmax>738016.9499608101323247</xmax>
-      <ymax>4777931.55624224897474051</ymax>
+      <xmin>737957.78181312477681786</xmin>
+      <ymin>4777898.34642587043344975</ymin>
+      <xmax>738267.00681312440428883</xmax>
+      <ymax>4778158.63798611424863338</ymax>
     </extent>
     <rotation>0</rotation>
     <projections>0</projections>
@@ -73,9 +73,9 @@
     </custom-order>
   </layer-tree-canvas>
   <legend updateDrawingOrder="true">
-    <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="pan" showFeatureCount="0">
+    <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="pan" showFeatureCount="0">
       <filegroup open="true" hidden="false">
-        <legendlayerfile isInOverview="0" layerid="13OCT09105024_P2AS_011651061010_01_P00120200303152914487" visible="0"/>
+        <legendlayerfile isInOverview="0" layerid="13OCT09105024_P2AS_011651061010_01_P00120200303152914487" visible="1"/>
       </filegroup>
     </legendlayer>
     <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="1" showFeatureCount="0">
@@ -113,9 +113,9 @@
         <legendlayerfile isInOverview="0" layerid="6_copy20200304003027899" visible="0"/>
       </filegroup>
     </legendlayer>
-    <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="8" showFeatureCount="0">
+    <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="8" showFeatureCount="0">
       <filegroup open="false" hidden="false">
-        <legendlayerfile isInOverview="0" layerid="7_copy20200304003043987" visible="1"/>
+        <legendlayerfile isInOverview="0" layerid="7_copy20200304003043987" visible="0"/>
       </filegroup>
     </legendlayer>
   </legend>
