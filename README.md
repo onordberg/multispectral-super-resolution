@@ -19,9 +19,9 @@ The actual thesis is located in a separate private repository https://github.com
 - [X] Implement a *simple* SR model, [SRCNN](https://arxiv.org/pdf/1501.00092v3.pdf), on *simple* datasets like MNIST and CIFAR-10
 - [X] Manually assess cloud conditions on each image by roughly annotating vector polygons around clouds
 - [X] Renamed image directories because they had wrong dates:
-  - 'WV02_Toulon_2016_04_06_011651052010_0' renamed to 'WV02_Toulon_2014_04_06_011651052010_0'
-  - 'WV02_Toulon_2015_11_15_011651049010_0' renamed to 'WV02_Toulon_2015_11_16_011651049010_0'
-- [X] Dropped completely an image that are 100% opaque clouds: 'WV02_La_Spezia_2018_06_25_011650581010_0'
+  - `WV02_Toulon_2016_04_06_011651052010_0` renamed to `WV02_Toulon_2014_04_06_011651052010_0`
+  - `WV02_Toulon_2015_11_15_011651049010_0` renamed to `WV02_Toulon_2015_11_16_011651049010_0`
+- [X] Dropped completely an image that are 100% opaque clouds: `WV02_La_Spezia_2018_06_25_011650581010_0`
 
 ### Work in progress
 - [ ] Identify significant litterature on SR and especially on SR of sat images
