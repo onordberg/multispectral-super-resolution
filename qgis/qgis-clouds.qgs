@@ -7,12 +7,15 @@
     <customproperties/>
     <layer-tree-group expanded="1" checked="Qt::PartiallyChecked" name="La Spezia">
       <customproperties/>
+      <layer-tree-layer expanded="1" providerKey="ogr" checked="Qt::Unchecked" id="09SEP25102015_P2AS_011651186010_01_P001_PIXEL_SHAPE20200521125108213" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_La_Spezia_2009_09_25_011651186010_0/011651186010_01_003/011651186010_01_003/011651186010_01/GIS_FILES/09SEP25102015-P2AS-011651186010_01_P001_PIXEL_SHAPE.shp" name="09SEP25102015-P2AS-011651186010_01_P001_PIXEL_SHAPE">
+        <customproperties/>
+      </layer-tree-layer>
       <layer-tree-layer expanded="1" providerKey="ogr" checked="Qt::Unchecked" id="laspezia_clouds20200519113904639" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia-clouds/laspezia-clouds.shp" name="laspezia-clouds">
         <customproperties/>
       </layer-tree-layer>
-      <layer-tree-group expanded="1" checked="Qt::PartiallyChecked" name="GE01">
+      <layer-tree-group expanded="0" checked="Qt::Unchecked" name="GE01">
         <customproperties/>
-        <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Checked" id="09SEP25102015_P2AS_011651186010_01_P00120200519103440506" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_La_Spezia_2009_09_25_011651186010_0/011651186010_01_003/011651186010_01_003/011651186010_01/011651186010_01_P001_PAN/09SEP25102015-P2AS-011651186010_01_P001.TIF" name="GE01_La_Spezia_2009_09_25_011651186010_0">
+        <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="09SEP25102015_P2AS_011651186010_01_P00120200519103440506" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_La_Spezia_2009_09_25_011651186010_0/011651186010_01_003/011651186010_01_003/011651186010_01/011651186010_01_P001_PAN/09SEP25102015-P2AS-011651186010_01_P001.TIF" name="GE01_La_Spezia_2009_09_25_011651186010_0">
           <customproperties/>
         </layer-tree-layer>
         <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="11JAN24102246_P2AS_011651197010_01_P00120200519103521978" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_La_Spezia_2011_01_24_011651197010_0/011651197010_01_003/011651197010_01_003/011651197010_01/011651197010_01_P001_PAN/11JAN24102246-P2AS-011651197010_01_P001.TIF" name="GE01_La_Spezia_2011_01_24_011651197010_0">
@@ -46,7 +49,7 @@
           <customproperties/>
         </layer-tree-layer>
       </layer-tree-group>
-      <layer-tree-group expanded="0" checked="Qt::Unchecked" name="WV02">
+      <layer-tree-group expanded="1" checked="Qt::PartiallyChecked" name="WV02">
         <customproperties/>
         <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="10AUG06102156_P2AS_011650744010_01_P00120200519104314750" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/WV02_La_Spezia_2010_08_06_011650744010_0/011650744010_01_003/011650744010_01_003/011650744010_01/011650744010_01_P001_PAN/10AUG06102156-P2AS-011650744010_01_P001.TIF" name="WV02_La_Spezia_2010_08_06_011650744010_0">
           <customproperties/>
@@ -84,10 +87,10 @@
         <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="15MAR19105006_P2AS_011650600010_01_P00120200519104652712" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/WV02_La_Spezia_2015_03_19_011650600010_0/011650600010_01_003/011650600010_01_003/011650600010_01/011650600010_01_P001_PAN/15MAR19105006-P2AS-011650600010_01_P001.TIF" name="WV02_La_Spezia_2015_03_19_011650600010_0">
           <customproperties/>
         </layer-tree-layer>
-        <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="15APR24102026_P2AS_011650748010_01_P00120200519104718736" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/WV02_La_Spezia_2015_04_24_011650748010_0/011650748010_01_003/011650748010_01_003/011650748010_01/011650748010_01_P001_PAN/15APR24102026-P2AS-011650748010_01_P001.TIF" name="WV02_La_Spezia_2015_04_24_011650748010_0">
+        <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Checked" id="15APR24102026_P2AS_011650748010_01_P00120200519104718736" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/WV02_La_Spezia_2015_04_24_011650748010_0/011650748010_01_003/011650748010_01_003/011650748010_01/011650748010_01_P001_PAN/15APR24102026-P2AS-011650748010_01_P001.TIF" name="WV02_La_Spezia_2015_04_24_011650748010_0">
           <customproperties/>
         </layer-tree-layer>
-        <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="15MAY21102310_P2AS_011650592010_01_P00120200519104745190" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/WV02_La_Spezia_2015_05_21_011650592010_0/011650592010_01_003/011650592010_01_003/011650592010_01/011650592010_01_P001_PAN/15MAY21102310-P2AS-011650592010_01_P001.TIF" name="WV02_La_Spezia_2015_05_21_011650592010_0">
+        <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Checked" id="15MAY21102310_P2AS_011650592010_01_P00120200519104745190" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/WV02_La_Spezia_2015_05_21_011650592010_0/011650592010_01_003/011650592010_01_003/011650592010_01/011650592010_01_P001_PAN/15MAY21102310-P2AS-011650592010_01_P001.TIF" name="WV02_La_Spezia_2015_05_21_011650592010_0">
           <customproperties/>
         </layer-tree-layer>
         <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="17MAR10101418_P2AS_011650750010_01_P00120200519104803888" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/WV02_La_Spezia_2017_03_10_011650750010_0/011650750010_01_003/011650750010_01_003/011650750010_01/011650750010_01_P001_PAN/17MAR10101418-P2AS-011650750010_01_P001.TIF" name="WV02_La_Spezia_2017_03_10_011650750010_0">
@@ -125,12 +128,12 @@
         </layer-tree-layer>
       </layer-tree-group>
     </layer-tree-group>
-    <layer-tree-group expanded="0" checked="Qt::Unchecked" name="Toulon">
+    <layer-tree-group expanded="1" checked="Qt::PartiallyChecked" name="Toulon">
       <customproperties/>
-      <layer-tree-layer expanded="1" providerKey="ogr" checked="Qt::Unchecked" id="toulon_clouds20200520114200741" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia-clouds/toulon-clouds.shp" name="toulon-clouds">
+      <layer-tree-layer expanded="1" providerKey="ogr" checked="Qt::Checked" id="toulon_clouds20200520114200741" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia-clouds/toulon-clouds.shp" name="toulon-clouds">
         <customproperties/>
       </layer-tree-layer>
-      <layer-tree-group expanded="1" checked="Qt::Unchecked" name="GE01">
+      <layer-tree-group expanded="1" checked="Qt::PartiallyChecked" name="GE01">
         <customproperties/>
         <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="09MAR23104216_P2AS_011651190010_01_P00120200519104016406" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_Toulon 2009_03_23_011651190010_0/011651190010_01_003/011651190010_01_003/011651190010_01/011651190010_01_P001_PAN/09MAR23104216-P2AS-011651190010_01_P001.TIF" name="GE01_Toulon 2009_03_23_011651190010_0">
           <customproperties/>
@@ -141,7 +144,7 @@
         <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="13AUG20103147_P2AS_011651198010_01_P00120200519104049169" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_Toulon 2013_08_20_011651198010_0/011651198010_01_003/011651198010_01_003/011651198010_01/011651198010_01_P001_PAN/13AUG20103147-P2AS-011651198010_01_P001.TIF" name="GE01_Toulon 2013_08_20_011651198010_0">
           <customproperties/>
         </layer-tree-layer>
-        <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="14OCT16102818_P2AS_011651185010_01_P00120200519104107389" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_Toulon 2014_10_16_011651185010_0/011651185010_01_003/011651185010_01_003/011651185010_01/011651185010_01_P001_PAN/14OCT16102818-P2AS-011651185010_01_P001.TIF" name="GE01_Toulon 2014_10_16_011651185010_0">
+        <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Checked" id="14OCT16102818_P2AS_011651185010_01_P00120200519104107389" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_Toulon 2014_10_16_011651185010_0/011651185010_01_003/011651185010_01_003/011651185010_01/011651185010_01_P001_PAN/14OCT16102818-P2AS-011651185010_01_P001.TIF" name="GE01_Toulon 2014_10_16_011651185010_0">
           <customproperties/>
         </layer-tree-layer>
         <layer-tree-layer expanded="0" providerKey="gdal" checked="Qt::Unchecked" id="16MAR26104743_P2AS_011651193010_01_P00120200519104125773" source="/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_Toulon 2016_03_26_011651193010_0/011651193010_01_003/011651193010_01_003/011651193010_01/011651193010_01_P001_PAN/16MAR26104743-P2AS-011651193010_01_P001.TIF" name="GE01_Toulon 2016_03_26_011651193010_0">
@@ -259,10 +262,10 @@
   <mapcanvas>
     <units>meters</units>
     <extent>
-      <xmin>564110.10317434964235872</xmin>
-      <ymin>4880034.18856795597821474</ymin>
-      <xmax>571232.73284394119400531</xmax>
-      <ymax>4885369.649108343757689</ymax>
+      <xmin>564558.58256059384439141</xmin>
+      <ymin>4884676.59334565233439207</ymin>
+      <xmax>564584.08607621735427529</xmax>
+      <ymax>4884692.11981050204485655</ymax>
     </extent>
     <rotation>0</rotation>
     <projections>1</projections>
@@ -281,36 +284,53 @@
     <rendermaptile>0</rendermaptile>
     <layer_coordinate_transform_info>
       <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="11JAN24102246_P2AS_011651197010_01_P00120200519103521978"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="11MAY10104118_P2AS_011650587010_01_P00120200519104339883"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="17JUL31103608_P2AS_011650593010_01_P00120200519104835625"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13OCT31104004_P2AS_011650588010_01_P00120200519104517753"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="laspezia_clouds20200519113904639"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="11MAY02103435_P2AS_011650586010_01_P00120200519104325924"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12FEB23101321_P2AS_011651192010_01_P00120200519103559053"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="11OCT28111545_P2AS_011650745010_01_P00120200519104352392"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="18MAY18103544_P2AS_011650597010_01_P00120200519104851473"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="18JUN25103917_P2AS_011650581010_01_P00120200519104921543"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL15101913_P2AS_011651183010_01_P00120200519103748970"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL23101019_P2AS_011651202010_01_P00120200519103818728"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL07102739_P2AS_011651184010_01_P00120200519103727006"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="19JAN03101318_P2AS_011651196010_01_P00120200519103852694"/>
       <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="14NOV20104547_P2AS_011650595010_01_P00120200519104556510"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15MAR19105006_P2AS_011650598010_01_P00120200519104622878"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15APR24102026_P2AS_011650748010_01_P00120200519104718736"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12JAN10105540_P2AS_011650582010_01_P00120200519104405510"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12MAY17104308_P2AS_011650585010_01_P00120200519104447359"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL18102818_P2AS_011651195010_01_P00120200519103805166"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13DEC08104149_P2AS_011650589010_01_P00120200519104533527"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15MAR19105006_P2AS_011650600010_01_P00120200519104652712"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12MAY16103528_P2AS_011651187010_01_P00120200519103710243"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="18JUN25103917_P2AS_011650581010_01_P00120200519104921543"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL07102739_P2AS_011651184010_01_P00120200519103727006"/>
       <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="09SEP25102015_P2AS_011651186010_01_P00120200519103440506"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="17APR16103244_P2AS_011651188010_01_P00120200519103832861"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="18MAY29103132_P2AS_011650583010_01_P00120200519104905816"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15MAY21102310_P2AS_011650592010_01_P00120200519104745190"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="09SEP25102015_P2AS_011651186010_01_P001_PIXEL_SHAPE20200521125108213"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32631" srcDatumTransform="-1" destDatumTransform="-1" layerid="16MAR26104743_P2AS_011651193010_01_P00120200519104125773"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12MAY16103528_P2AS_011651187010_01_P00120200519103710243"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="12FEB23101321_P2AS_011651192010_01_P001_PIXEL_SHAPE20200521115959670"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13DEC08104149_P2AS_011650589010_01_P00120200519104533527"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="12FEB23101321_P2AS_011651192010_01_P001_PIXEL_SHAPE20200521120014654"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL15101913_M2AS_011651183010_01_P001_PIXEL_SHAPE20200521121730241"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="09SEP25102015_P2AS_011651186010_01_P001_PIXEL_SHAPE20200521114758383"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL07102739_P2AS_011651184010_01_P001_PIXEL_SHAPE20200521120228046"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="11MAY02103435_P2AS_011650586010_01_P00120200519104325924"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="11OCT28111545_P2AS_011650745010_01_P00120200519104352392"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32631" srcDatumTransform="-1" destDatumTransform="-1" layerid="14OCT16102818_P2AS_011651185010_01_P00120200519104107389"/>
       <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="17MAR10101418_P2AS_011650750010_01_P00120200519104803888"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="10AUG06102156_P2AS_011650744010_01_P00120200519104314750"/>
-      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12MAY07100851_P2AS_011651189010_01_P00120200519103650909"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15MAR19105006_P2AS_011650600010_01_P00120200519104652712"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="laspezia_clouds20200519113904639"/>
       <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15JAN05104656_P2AS_011650746010_01_P00120200519104608077"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL15101913_P2AS_011651183010_01_P001_PIXEL_SHAPE20200521120413651"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="19JAN03101318_P2AS_011651196010_01_P00120200519103852694"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13OCT31104004_P2AS_011650588010_01_P00120200519104517753"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12JAN10105540_P2AS_011650582010_01_P00120200519104405510"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL23101019_P2AS_011651202010_01_P00120200519103818728"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12MAY07100851_P2AS_011651189010_01_P00120200519103650909"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12MAY17104308_P2AS_011650585010_01_P00120200519104447359"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15MAY21102310_P2AS_011650592010_01_P00120200519104745190"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="09SEP25102015_M2AS_011651186010_01_P001_PIXEL_SHAPE20200521114756752"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="17JUL31103608_P2AS_011650593010_01_P00120200519104835625"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL15101913_P2AS_011651183010_01_P00120200519103748970"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL15101913_M2AS_011651183010_01_P001_PIXEL_SHAPE20200521120426814"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL18102818_P2AS_011651195010_01_P00120200519103805166"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="09SEP25102015_P2AS_011651186010_01_P001_PIXEL_SHAPE20200521125131062"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15APR24102026_P2AS_011650748010_01_P00120200519104718736"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="13JUL07102739_P2AS_011651184010_01_P001_PIXEL_SHAPE20200521120253157"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="011651186010_01_PRODUCT_SHAPE20200521115123419"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="18MAY29103132_P2AS_011650583010_01_P00120200519104905816"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="011651186010_01_TILE_SHAPE20200521115143556"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="10AUG06102156_P2AS_011650744010_01_P00120200519104314750"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32631" srcDatumTransform="-1" destDatumTransform="-1" layerid="toulon_clouds20200520114200741"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="12FEB23101321_P2AS_011651192010_01_P00120200519103559053"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:4326" srcDatumTransform="-1" destDatumTransform="-1" layerid="011651186010_01_ORDER_SHAPE20200521115138933"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="18MAY18103544_P2AS_011650597010_01_P00120200519104851473"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="11MAY10104118_P2AS_011650587010_01_P00120200519104339883"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="15MAR19105006_P2AS_011650598010_01_P00120200519104622878"/>
+      <layer_coordinate_transform destAuthId="EPSG:32632" srcAuthId="EPSG:32632" srcDatumTransform="-1" destDatumTransform="-1" layerid="17APR16103244_P2AS_011651188010_01_P00120200519103832861"/>
     </layer_coordinate_transform_info>
   </mapcanvas>
   <layer-tree-canvas>
@@ -390,19 +410,25 @@
       <item>19FEB11104736_P2AS_011650889010_01_P00120200519110618620</item>
       <item>laspezia_clouds20200519113904639</item>
       <item>toulon_clouds20200520114200741</item>
+      <item>09SEP25102015_P2AS_011651186010_01_P001_PIXEL_SHAPE20200521125108213</item>
     </custom-order>
   </layer-tree-canvas>
   <legend updateDrawingOrder="true">
     <legendgroup open="true" checked="Qt::PartiallyChecked" name="La Spezia">
+      <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="09SEP25102015-P2AS-011651186010_01_P001_PIXEL_SHAPE" showFeatureCount="0">
+        <filegroup open="true" hidden="false">
+          <legendlayerfile isInOverview="0" layerid="09SEP25102015_P2AS_011651186010_01_P001_PIXEL_SHAPE20200521125108213" visible="0"/>
+        </filegroup>
+      </legendlayer>
       <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="laspezia-clouds" showFeatureCount="0">
         <filegroup open="true" hidden="false">
           <legendlayerfile isInOverview="0" layerid="laspezia_clouds20200519113904639" visible="0"/>
         </filegroup>
       </legendlayer>
-      <legendgroup open="true" checked="Qt::PartiallyChecked" name="GE01">
-        <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="GE01_La_Spezia_2009_09_25_011651186010_0" showFeatureCount="0">
+      <legendgroup open="false" checked="Qt::Unchecked" name="GE01">
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="GE01_La_Spezia_2009_09_25_011651186010_0" showFeatureCount="0">
           <filegroup open="false" hidden="false">
-            <legendlayerfile isInOverview="0" layerid="09SEP25102015_P2AS_011651186010_01_P00120200519103440506" visible="1"/>
+            <legendlayerfile isInOverview="0" layerid="09SEP25102015_P2AS_011651186010_01_P00120200519103440506" visible="0"/>
           </filegroup>
         </legendlayer>
         <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="GE01_La_Spezia_2011_01_24_011651197010_0" showFeatureCount="0">
@@ -456,7 +482,7 @@
           </filegroup>
         </legendlayer>
       </legendgroup>
-      <legendgroup open="false" checked="Qt::Unchecked" name="WV02">
+      <legendgroup open="true" checked="Qt::PartiallyChecked" name="WV02">
         <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="WV02_La_Spezia_2010_08_06_011650744010_0" showFeatureCount="0">
           <filegroup open="false" hidden="false">
             <legendlayerfile isInOverview="0" layerid="10AUG06102156_P2AS_011650744010_01_P00120200519104314750" visible="0"/>
@@ -517,14 +543,14 @@
             <legendlayerfile isInOverview="0" layerid="15MAR19105006_P2AS_011650600010_01_P00120200519104652712" visible="0"/>
           </filegroup>
         </legendlayer>
-        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="WV02_La_Spezia_2015_04_24_011650748010_0" showFeatureCount="0">
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="WV02_La_Spezia_2015_04_24_011650748010_0" showFeatureCount="0">
           <filegroup open="false" hidden="false">
-            <legendlayerfile isInOverview="0" layerid="15APR24102026_P2AS_011650748010_01_P00120200519104718736" visible="0"/>
+            <legendlayerfile isInOverview="0" layerid="15APR24102026_P2AS_011650748010_01_P00120200519104718736" visible="1"/>
           </filegroup>
         </legendlayer>
-        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="WV02_La_Spezia_2015_05_21_011650592010_0" showFeatureCount="0">
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="WV02_La_Spezia_2015_05_21_011650592010_0" showFeatureCount="0">
           <filegroup open="false" hidden="false">
-            <legendlayerfile isInOverview="0" layerid="15MAY21102310_P2AS_011650592010_01_P00120200519104745190" visible="0"/>
+            <legendlayerfile isInOverview="0" layerid="15MAY21102310_P2AS_011650592010_01_P00120200519104745190" visible="1"/>
           </filegroup>
         </legendlayer>
         <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="WV02_La_Spezia_2017_03_10_011650750010_0" showFeatureCount="0">
@@ -581,13 +607,13 @@
         </legendlayer>
       </legendgroup>
     </legendgroup>
-    <legendgroup open="false" checked="Qt::Unchecked" name="Toulon">
-      <legendlayer drawingOrder="-1" open="true" checked="Qt::Unchecked" name="toulon-clouds" showFeatureCount="0">
+    <legendgroup open="true" checked="Qt::PartiallyChecked" name="Toulon">
+      <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="toulon-clouds" showFeatureCount="0">
         <filegroup open="true" hidden="false">
-          <legendlayerfile isInOverview="0" layerid="toulon_clouds20200520114200741" visible="0"/>
+          <legendlayerfile isInOverview="0" layerid="toulon_clouds20200520114200741" visible="1"/>
         </filegroup>
       </legendlayer>
-      <legendgroup open="true" checked="Qt::Unchecked" name="GE01">
+      <legendgroup open="true" checked="Qt::PartiallyChecked" name="GE01">
         <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="GE01_Toulon 2009_03_23_011651190010_0" showFeatureCount="0">
           <filegroup open="false" hidden="false">
             <legendlayerfile isInOverview="0" layerid="09MAR23104216_P2AS_011651190010_01_P00120200519104016406" visible="0"/>
@@ -603,9 +629,9 @@
             <legendlayerfile isInOverview="0" layerid="13AUG20103147_P2AS_011651198010_01_P00120200519104049169" visible="0"/>
           </filegroup>
         </legendlayer>
-        <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="GE01_Toulon 2014_10_16_011651185010_0" showFeatureCount="0">
+        <legendlayer drawingOrder="-1" open="false" checked="Qt::Checked" name="GE01_Toulon 2014_10_16_011651185010_0" showFeatureCount="0">
           <filegroup open="false" hidden="false">
-            <legendlayerfile isInOverview="0" layerid="14OCT16102818_P2AS_011651185010_01_P00120200519104107389" visible="0"/>
+            <legendlayerfile isInOverview="0" layerid="14OCT16102818_P2AS_011651185010_01_P00120200519104107389" visible="1"/>
           </filegroup>
         </legendlayer>
         <legendlayer drawingOrder="-1" open="false" checked="Qt::Unchecked" name="GE01_Toulon 2016_03_26_011651193010_0" showFeatureCount="0">
@@ -885,6 +911,121 @@
         <rasterresampler maxOversampling="2"/>
       </pipe>
       <blendMode>0</blendMode>
+    </maplayer>
+    <maplayer simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="1" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" geometry="Polygon" simplifyMaxScale="1" type="vector" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+      <id>09SEP25102015_P2AS_011651186010_01_P001_PIXEL_SHAPE20200521125108213</id>
+      <datasource>/home/landet/master/multispectral-super-resolution/data/toulon-laspezia/GE01_La_Spezia_2009_09_25_011651186010_0/011651186010_01_003/011651186010_01_003/011651186010_01/GIS_FILES/09SEP25102015-P2AS-011651186010_01_P001_PIXEL_SHAPE.shp</datasource>
+      <keywordList>
+        <value></value>
+      </keywordList>
+      <layername>09SEP25102015-P2AS-011651186010_01_P001_PIXEL_SHAPE</layername>
+      <srs>
+        <spatialrefsys>
+          <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+          <srsid>3452</srsid>
+          <srid>4326</srid>
+          <authid>EPSG:4326</authid>
+          <description>WGS 84</description>
+          <projectionacronym>longlat</projectionacronym>
+          <ellipsoidacronym>WGS84</ellipsoidacronym>
+          <geographicflag>true</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <provider encoding="System">ogr</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <expressionfields/>
+      <map-layer-style-manager current="">
+        <map-layer-style name=""/>
+      </map-layer-style-manager>
+      <edittypes>
+        <edittype widgetv2type="TextEdit" name="prodDesc">
+          <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+        </edittype>
+        <edittype widgetv2type="TextEdit" name="volNum">
+          <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+        </edittype>
+      </edittypes>
+      <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
+        <symbols>
+          <symbol alpha="1" clip_to_extent="1" type="fill" name="0">
+            <layer pass="0" class="SimpleFill" locked="0">
+              <prop k="border_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="color" v="149,171,203,255"/>
+              <prop k="joinstyle" v="bevel"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="0,0,0,255"/>
+              <prop k="outline_style" v="solid"/>
+              <prop k="outline_width" v="0.26"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="style" v="solid"/>
+            </layer>
+          </symbol>
+        </symbols>
+        <rotation/>
+        <sizescale scalemethod="diameter"/>
+      </renderer-v2>
+      <labeling type="simple"/>
+      <customproperties/>
+      <blendMode>0</blendMode>
+      <featureBlendMode>0</featureBlendMode>
+      <layerTransparency>0</layerTransparency>
+      <displayfield>prodDesc</displayfield>
+      <label>0</label>
+      <labelattributes>
+        <label fieldname="" text="Label"/>
+        <family fieldname="" name="Ubuntu"/>
+        <size fieldname="" units="pt" value="12"/>
+        <bold fieldname="" on="0"/>
+        <italic fieldname="" on="0"/>
+        <underline fieldname="" on="0"/>
+        <strikeout fieldname="" on="0"/>
+        <color fieldname="" red="0" blue="0" green="0"/>
+        <x fieldname=""/>
+        <y fieldname=""/>
+        <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
+        <angle fieldname="" value="0" auto="0"/>
+        <alignment fieldname="" value="center"/>
+        <buffercolor fieldname="" red="255" blue="255" green="255"/>
+        <buffersize fieldname="" units="pt" value="1"/>
+        <bufferenabled fieldname="" on=""/>
+        <multilineenabled fieldname="" on=""/>
+        <selectedonly on=""/>
+      </labelattributes>
+      <annotationform></annotationform>
+      <aliases>
+        <alias field="prodDesc" index="0" name=""/>
+        <alias field="volNum" index="1" name=""/>
+      </aliases>
+      <excludeAttributesWMS/>
+      <excludeAttributesWFS/>
+      <attributeactions default="-1"/>
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;area&quot;" sortOrder="0">
+        <columns>
+          <column width="839" hidden="0" type="field" name="prodDesc"/>
+          <column width="-1" hidden="0" type="field" name="volNum"/>
+          <column width="-1" hidden="1" type="actions"/>
+        </columns>
+      </attributetableconfig>
+      <editform></editform>
+      <editforminit/>
+      <editforminitcodesource>0</editforminitcodesource>
+      <editforminitfilepath></editforminitfilepath>
+      <editforminitcode><![CDATA[]]></editforminitcode>
+      <featformsuppress>0</featformsuppress>
+      <editorlayout>generatedlayout</editorlayout>
+      <widgets/>
+      <conditionalstyles>
+        <rowstyles/>
+        <fieldstyles/>
+      </conditionalstyles>
+      <defaults>
+        <default field="prodDesc" expression=""/>
+        <default field="volNum" expression=""/>
+      </defaults>
+      <previewExpression>COALESCE( "prodDesc", '&lt;NULL>' )</previewExpression>
     </maplayer>
     <maplayer minimumScale="0" maximumScale="1e+08" type="raster" hasScaleBasedVisibilityFlag="0">
       <extent>
@@ -4703,7 +4844,7 @@
       <excludeAttributesWMS/>
       <excludeAttributesWFS/>
       <attributeactions default="-1"/>
-      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;image_id&quot;" sortOrder="0">
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="&quot;area&quot;" sortOrder="0">
         <columns>
           <column width="-1" hidden="0" type="field" name="id"/>
           <column width="759" hidden="0" type="field" name="image_id"/>
@@ -5131,8 +5272,10 @@ def my_form_open(dialog, layer, feature):
       <LayerSnappingList type="QStringList">
         <value>laspezia_clouds20200519113904639</value>
         <value>toulon_clouds20200520114200741</value>
+        <value>09SEP25102015_P2AS_011651186010_01_P001_PIXEL_SHAPE20200521125108213</value>
       </LayerSnappingList>
       <LayerSnappingEnabledList type="QStringList">
+        <value>disabled</value>
         <value>disabled</value>
         <value>disabled</value>
       </LayerSnappingEnabledList>
@@ -5142,8 +5285,10 @@ def my_form_open(dialog, layer, feature):
       <LayerSnappingToleranceUnitList type="QStringList">
         <value>2</value>
         <value>2</value>
+        <value>2</value>
       </LayerSnappingToleranceUnitList>
       <LayerSnapToList type="QStringList">
+        <value>to_vertex_and_segment</value>
         <value>to_vertex_and_segment</value>
         <value>to_vertex_and_segment</value>
       </LayerSnapToList>
@@ -5151,6 +5296,7 @@ def my_form_open(dialog, layer, feature):
       <DefaultSnapTolerance type="double">0</DefaultSnapTolerance>
       <TopologicalEditing type="bool">true</TopologicalEditing>
       <LayerSnappingToleranceList type="QStringList">
+        <value>0.000000</value>
         <value>0.000000</value>
         <value>0.000000</value>
       </LayerSnappingToleranceList>
