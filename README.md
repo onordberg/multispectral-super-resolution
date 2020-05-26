@@ -33,12 +33,16 @@ The actual thesis is located in a separate private repository https://github.com
   - EESRGAN - 2020 (satellite SR): [paperswithcode](https://paperswithcode.com/paper/small-object-detection-in-remote-sensing), [paper](https://arxiv.org/pdf/2003.09085v4.pdf)
 - [ ] Approval of project description by institute
 - [ ] Implement a *simple* SR model, [SRCNN](https://arxiv.org/pdf/1501.00092v3.pdf), on satellite imagery
-- [ ] Write *Introduction* chapter of thesis
+  - This is partly done, but just on 1 training image and 1 validation image. Results therefore not the best.
+- [ ] Decide on training, validation and test split
+  - Suggestion for review available in `data-exploration-display-version.ipynb`
+- [ ] Clarify satellite publication restrictions (copyright etc.)
+  - In contact with the Defence Mapping Agency about this. American style legal text that leaves some questions, but right now it looks like "Satellite image © 2020 Maxar Technologies" in the figure text is sufficient. Contact in the Defence is following up with point of contact in Maxar.
+- [ ] Write data generation functions for extracting tiles from satellite imagery
+  - First iteration of this is done, but needs rework to optimize
+
 
 ### Next
-
 - [ ] If appropriate: Use automatic cloud classification from FFI
-- [ ] Decide on training, validation and test split
-- [ ] Clarify satellite publication restrictions (copyright etc.)
-- [ ] Write data generation functions for extracting tiles from satellite imagery
+- [ ] Write *Introduction* chapter of thesis
 - [ ] Implement a *state of the art* SR model on a simple dataset like MINST, CIFAR-10
