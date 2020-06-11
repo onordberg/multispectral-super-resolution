@@ -22,6 +22,8 @@ The actual thesis is located in a separate private repository https://github.com
   - `WV02_Toulon_2016_04_06_011651052010_0` renamed to `WV02_Toulon_2014_04_06_011651052010_0`
   - `WV02_Toulon_2015_11_15_011651049010_0` renamed to `WV02_Toulon_2015_11_16_011651049010_0`
 - [X] Dropped completely an image that are 100% opaque clouds: `WV02_La_Spezia_2018_06_25_011650581010_0`
+- [X] Clarify satellite publication restrictions (copyright etc.)
+  - Been in contact with the Defence Mapping Agency about this. She has confirmed that "Satellite image © 2020 Maxar Technologies" in the figure text is sufficient.
 
 ### Work in progress
 - [ ] Identify significant litterature on SR and especially on SR of sat images
@@ -36,8 +38,6 @@ The actual thesis is located in a separate private repository https://github.com
   - This is partly done, but just on 1 training image and 1 validation image. Results therefore not the best.
 - [ ] Decide on training, validation and test split
   - Suggestion for review available in `data-exploration-display-version.ipynb`
-- [ ] Clarify satellite publication restrictions (copyright etc.)
-  - In contact with the Defence Mapping Agency about this. American style legal text that leaves some questions, but right now it looks like "Satellite image © 2020 Maxar Technologies" in the figure text is sufficient. Contact in the Defence is following up with point of contact in Maxar.
 - [ ] Write data generation functions for extracting tiles from satellite imagery
   - First iteration of this is done, but needs rework to optimize
 
