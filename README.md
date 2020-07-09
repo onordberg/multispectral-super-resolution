@@ -24,8 +24,18 @@ The actual thesis is located in a separate private repository https://github.com
 - [X] Dropped completely an image that are 100% opaque clouds: `WV02_La_Spezia_2018_06_25_011650581010_0`
 - [X] Clarify satellite publication restrictions (copyright etc.)
   - Been in contact with the Defence Mapping Agency about this. She has confirmed that "Satellite image © 2020 Maxar Technologies" in the figure text is sufficient.
+- [X] Decide on training, validation and test split - `data-exploration-display-version.ipynb`
+- [X] Write data generation functions for extracting tiles from satellite imagery. Preserving georeferencing of tiles.
+- [X] Write data generator to feed neural net from tiles saved on disk using the `tf.data` API
+- [X] Implement a *simple* SR model, [SRCNN](https://arxiv.org/pdf/1501.00092v3.pdf), on satellite imagery
+  - This is partly done, but not tuned and probably lots of room to improve on the performance.
 
 ### Work in progress
+- [ ] Implement a *state of the art* SR model on a simple dataset like MINST, CIFAR-10
+- [ ] Implement a *state of the art* SR model [ESRGAN](https://arxiv.org/pdf/1809.00219v2.pdf) on satellite imagery
+
+- [ ] Approval of project description by institute
+  - I consider this approved, but have not received formal approval as of June 2020.
 - [ ] Identify significant litterature on SR and especially on SR of sat images
   - Papers with code on SR: https://paperswithcode.com/task/image-super-resolution
   - SRCNN - 2014: [paperswithcode](https://paperswithcode.com/paper/image-super-resolution-using-deep), [paper](https://arxiv.org/pdf/1501.00092v3.pdf)
@@ -33,16 +43,6 @@ The actual thesis is located in a separate private repository https://github.com
   - ESRGAN - 2018: [paperswithcode](https://paperswithcode.com/paper/esrgan-enhanced-super-resolution-generative), [paper](https://arxiv.org/pdf/1809.00219v2.pdf)
   - SAN - 2019: [paperswithcode](https://paperswithcode.com/paper/second-order-attention-network-for-single), [paper](http://openaccess.thecvf.com/content_CVPR_2019/papers/Dai_Second-Order_Attention_Network_for_Single_Image_Super-Resolution_CVPR_2019_paper.pdf)
   - EESRGAN - 2020 (satellite SR): [paperswithcode](https://paperswithcode.com/paper/small-object-detection-in-remote-sensing), [paper](https://arxiv.org/pdf/2003.09085v4.pdf)
-- [ ] Approval of project description by institute
-- [ ] Implement a *simple* SR model, [SRCNN](https://arxiv.org/pdf/1501.00092v3.pdf), on satellite imagery
-  - This is partly done, but just on 1 training image and 1 validation image. Results therefore not the best.
-- [ ] Decide on training, validation and test split
-  - Suggestion for review available in `data-exploration-display-version.ipynb`
-- [ ] Write data generation functions for extracting tiles from satellite imagery
-  - First iteration of this is done, but needs rework to optimize
-
 
 ### Next
-- [ ] If appropriate: Use automatic cloud classification from FFI
 - [ ] Write *Introduction* chapter of thesis
-- [ ] Implement a *state of the art* SR model on a simple dataset like MINST, CIFAR-10
