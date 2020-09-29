@@ -35,6 +35,7 @@ The actual thesis is located in a separate private repository https://github.com
  - First iteration of this is done and it gave reasonable results
 
 ### Work in progress
+- [ ] Implement pan-sharpening
 - [ ] Implement evaluation metrics NIQE and BRISQUE in TensorFlow
 - [ ] Implement evaluation metric LPIPS (NN-based image quality metric) in TensorFlow
 - [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) as alternative to VGG-19 model trained on ImageNet 
