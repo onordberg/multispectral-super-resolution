@@ -56,4 +56,5 @@ The actual thesis is located in a separate private repository https://github.com
   - EESRGAN - 2020 (satellite SR): [paperswithcode](https://paperswithcode.com/paper/small-object-detection-in-remote-sensing), [paper](https://arxiv.org/pdf/2003.09085v4.pdf)
 
 ### Next
-- [ ] Write *Introduction* chapter of thesis
+- [ ] Writing thesis
+- [ ] Implement network interpolation between the PSNR-pretrained model and the GAN trained model as done in the ESRGAN paper
