@@ -40,7 +40,8 @@ The actual thesis is located in a separate private repository https://github.com
 - [X] Setup Zotero and import all identified litterature
 
 ### Work in progress
-- [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) as alternative to VGG-19 model trained on ImageNet 
+- [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on satellite images as alternative to VGG-19 model trained on ImageNet 
+  - [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) looked promising, but will likely not work very well due to input being the 13 bands of the Sentinel-2 sensor. Mine should either be input of panchromatic or RGB since I am comparing with my SR generated panchromatic.
 - [ ] Do a rough feasability study of whether training on WV02 and validating on GE01 sensor is doable
 
 ### Next
