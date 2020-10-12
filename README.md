@@ -37,24 +37,13 @@ The actual thesis is located in a separate private repository https://github.com
  - First iteration of this is done and it gave reasonable results
 - [X] Implement pan-sharpening
  - Implemented the Brovey method. Should also implement the Gram-Schmidt method.
+- [X] Setup Zotero and import all identified litterature
 
 ### Work in progress
-- [ ] Implement evaluation metrics NIQE and BRISQUE in TensorFlow
-- [ ] Implement evaluation metric LPIPS (NN-based image quality metric) in TensorFlow
 - [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) as alternative to VGG-19 model trained on ImageNet 
-- [ ] Identify significant litterature on evaluation metrics in the SR community
- - S. Athar and Z. Wang, "A Comprehensive Performance Evaluation of Image Quality Assessment Algorithms," in IEEE Access, vol. 7, pp. 140030-140070, 2019, doi: 10.1109/ACCESS.2019.2943319. https://ieeexplore.ieee.org/document/8847307
- - Zhang, Richard, et al. "The unreasonable effectiveness of deep features as a perceptual metric." Proceedings of the IEEE conference on computer vision and pattern recognition. 2018. https://arxiv.org/abs/1801.03924
- - Blau, Yochai, et al. "The 2018 pirm challenge on perceptual image super-resolution." Proceedings of the European Conference on Computer Vision (ECCV). 2018. https://arxiv.org/abs/1809.07517
-- [ ] Identify significant litterature on SR and especially on SR of sat images
-  - PIRM2018 Challenge on Spectral Image Super-Resolution: Dataset and Study https://arxiv.org/abs/1904.00540
-  - Papers with code on SR: https://paperswithcode.com/task/image-super-resolution
-  - SRCNN - 2014: [paperswithcode](https://paperswithcode.com/paper/image-super-resolution-using-deep), [paper](https://arxiv.org/pdf/1501.00092v3.pdf)
-  - SRGAN - 2017: [paperswithcode](https://paperswithcode.com/paper/photo-realistic-single-image-super-resolution), [paper](https://arxiv.org/pdf/1609.04802v5.pdf)
-  - ESRGAN - 2018: [paperswithcode](https://paperswithcode.com/paper/esrgan-enhanced-super-resolution-generative), [paper](https://arxiv.org/pdf/1809.00219v2.pdf)
-  - SAN - 2019: [paperswithcode](https://paperswithcode.com/paper/second-order-attention-network-for-single), [paper](http://openaccess.thecvf.com/content_CVPR_2019/papers/Dai_Second-Order_Attention_Network_for_Single_Image_Super-Resolution_CVPR_2019_paper.pdf)
-  - EESRGAN - 2020 (satellite SR): [paperswithcode](https://paperswithcode.com/paper/small-object-detection-in-remote-sensing), [paper](https://arxiv.org/pdf/2003.09085v4.pdf)
+- [ ] Do a rough feasability study of whether training on WV02 and validating on GE01 sensor is doable
 
 ### Next
-- [ ] Writing thesis
+- [ ] Implement evaluation metrics NIQE and BRISQUE in TensorFlow
+- [ ] Implement evaluation metric LPIPS (NN-based image quality metric) in TensorFlow
 - [ ] Implement network interpolation between the PSNR-pretrained model and the GAN trained model as done in the ESRGAN paper
