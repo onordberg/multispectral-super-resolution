@@ -4,7 +4,7 @@ def get_int_uid(meta, string_UIDs):
 def get_string_uid(meta, int_UIDs):
     # Could probably be neater
     # Accepts list of ints and single int
-    if type(int_UIDs) == int:
+    if not isinstance(int_UIDs, list):
         int_UIDs = [int_UIDs]
     l = []
     for int_UID in int_UIDs:
