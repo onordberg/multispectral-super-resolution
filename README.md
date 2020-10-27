@@ -43,6 +43,10 @@ The actual thesis is located in a separate private repository https://github.com
 - [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on satellite images as alternative to VGG-19 model trained on ImageNet 
   - [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) looked promising, but will likely not work very well due to input being the 13 bands of the Sentinel-2 sensor. Mine should either be input of panchromatic or RGB since I am comparing with my SR generated panchromatic.
 - [ ] Do a rough feasability study of whether training on WV02 and validating on GE01 sensor is doable
+  - 75% complete. Data pipeline and model modified to train on WV02 and validate on GE01 by:
+   1. resizing GE01 images to match resolution of WV02 (2m MS, 0.5m PAN)
+   2. only using RGB+NIR bands of WV02
+  - Currently training the model
 
 ### Next
 - [ ] Implement evaluation metrics NIQE and BRISQUE in TensorFlow
