@@ -38,17 +38,26 @@ The actual thesis is located in a separate private repository https://github.com
 - [X] Implement pan-sharpening
  - Implemented the Brovey method. Should also implement the Gram-Schmidt method.
 - [X] Setup Zotero and import all identified litterature
-
-### Work in progress
-- [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on satellite images as alternative to VGG-19 model trained on ImageNet 
-  - [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) looked promising, but will likely not work very well due to input being the 13 bands of the Sentinel-2 sensor. Mine should either be input of panchromatic or RGB since I am comparing with my SR generated panchromatic.
-- [ ] Do a rough feasability study of whether training on WV02 and validating on GE01 sensor is doable
-  - 75% complete. Data pipeline and model modified to train on WV02 and validate on GE01 by:
+- [X] Do a rough feasability study of whether training on WV02 and validating on GE01 sensor is doable
+  - Results are promising enough to be of interest
+  - Data pipeline and model modified to train on WV02 and validate on GE01 by:
    1. resizing GE01 images to match resolution of WV02 (2m MS, 0.5m PAN)
    2. only using RGB+NIR bands of WV02
-  - Currently training the model
+
+### Work in progress
+- [ ] Implement metrics in TensorFlow (or in Python as a custom metric)
+  - Perceptual index (PI) which is often used as an alternative to PSNR and SSIM and also used in the PIRM-SR challenge which ESRGAN won in 2018. PI is a function of two other metrics:
+    - [NIQE](https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=6353522&ref=aHR0cHM6Ly9pZWVleHBsb3JlLmllZWUub3JnL2Fic3RyYWN0L2RvY3VtZW50LzYzNTM1MjI=&tag=1) which is available in Python as a measure in the [scikit-video](http://www.scikit-video.org/stable/modules/generated/skvideo.measure.niqe.html) package.
+    - and [Ma et. al.](https://www.sciencedirect.com/science/article/pii/S107731421630203X) which to my knowledge is only available as a [matlab repository](https://github.com/chaoma99/sr-metric)
+  - Both are available in the official [matlab repository](https://github.com/roimehrez/PIRM2018) used for evaluation in the PIRM-SR 2018 competition.
+  - Status: I fired up Matlab and verified that the functions are working and giving reasonable results on the satellite ground truth (PAN/HR) as well as the SR images. However NIQE in particular requires larger image sizes than 128x128. Tried with 1024x1024 and this gave reasonable results. This leads me to design a training/evaluation scheme in my experiments that use larger tile sizes for the validation and test sets. Since my model is fully convolutional variable tile size is possible, and I also verified that this is possible. Due to memory constraints on the GPU the batch size needs to be lower during the validation set evaluation than during training.
+    - I am now trying to compile the `Ma et. al.` Matlab code as a Python package (supported in Matlab). I consider re-implementing the `Ma et. al.` code from the ground up in Python as too time-consuming for this project so hopefully the compilation shortcut works.
+    - For NIQE there are some indications in discussion threads that the scikit-video implementation is buggy so to be able to trust this implementation a comparison with the matlab implementation is needed. If there are deviations the Matlab implementation seem more trustworthy.
+- [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on satellite images as alternative to VGG-19 model trained on ImageNet 
+  - [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) looked promising, but will likely not work very well due to input being the 13 bands of the Sentinel-2 sensor. Mine should either be input of panchromatic or RGB since I am comparing with my SR generated panchromatic.
+
 
 ### Next
-- [ ] Implement evaluation metrics NIQE and BRISQUE in TensorFlow
+
 - [ ] Implement evaluation metric LPIPS (NN-based image quality metric) in TensorFlow
 - [ ] Implement network interpolation between the PSNR-pretrained model and the GAN trained model as done in the ESRGAN paper
