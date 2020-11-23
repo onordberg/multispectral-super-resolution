@@ -13,3 +13,17 @@ def get_string_uid(meta, int_UIDs):
         return l[0]
     else:
         return l
+     
+def count_images_in_partition(meta, train_val_test):
+    try: 
+        n_images = meta['train_val_test'].value_counts()[train_val_test]
+    except KeyError as e:
+        n_images = 0
+    return n_images
+
+def count_tiles_in_partition(meta, train_val_test):
+    try: 
+        n_tiles = sum(meta.loc[meta['train_val_test'] == train_val_test, 'n_tiles'])
+    except KeyError as e:
+        n_tiles = 0
+    return n_tiles
