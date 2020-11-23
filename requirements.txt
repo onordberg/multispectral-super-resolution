@@ -17,9 +17,9 @@ cycler==0.10.0
 decorator==4.4.2
 defusedxml==0.6.0
 entrypoints==0.3
-Fiona @ file:///C:/Users/ono008/Fiona-1.8.17-cp37-cp37m-win_amd64.whl
+Fiona @ file:///env/wheel/Fiona-1.8.17-cp37-cp37m-win_amd64.whl
 gast==0.3.3
-GDAL @ file:///C:/Users/ono008/GDAL-3.1.4-cp37-cp37m-win_amd64.whl
+GDAL @ file:///env/wheel/GDAL-3.1.4-cp37-cp37m-win_amd64.whl
 geopandas==0.8.1
 google-auth==1.23.0
 google-auth-oauthlib==0.4.2
@@ -74,7 +74,7 @@ python-dateutil==2.8.1
 pytz==2020.4
 pywin32==228
 pyzmq==19.0.2
-rasterio @ file:///C:/Users/ono008/rasterio-1.1.8-cp37-cp37m-win_amd64.whl
+rasterio @ file:///env/wheel/rasterio-1.1.8-cp37-cp37m-win_amd64.whl
 requests==2.24.0
 requests-oauthlib==1.3.0
 rsa==4.6
