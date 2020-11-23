@@ -3,3 +3,8 @@
 **__pycache__
 *.qgs~
 data/toulon-laspezia
+results
+models
+logs
+data
+env
