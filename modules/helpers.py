@@ -1,5 +1,7 @@
+import pandas as pd
+
 def get_int_uid(meta, string_UIDs):
-    if isinstance(meta, pandas.core.series.Series):
+    if isinstance(meta, pd.core.series.Series):
         return meta['int_uid']
     else:
         return meta.loc[string_UIDs]['int_uid'].tolist()
@@ -9,7 +11,7 @@ def get_string_uid(meta, int_UIDs):
     # Accepts list of ints and single int
     
     # If meta is just a row the answer is simple
-    if isinstance(meta, pandas.core.series.Series):
+    if isinstance(meta, pd.core.series.Series):
         return meta.name
     
     # Handling lists of int_UIDs
