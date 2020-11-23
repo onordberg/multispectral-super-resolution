@@ -43,6 +43,9 @@ The actual thesis is located in a separate private repository https://github.com
   - Data pipeline and model modified to train on WV02 and validate on GE01 by:
    1. resizing GE01 images to match resolution of WV02 (2m MS, 0.5m PAN)
    2. only using RGB+NIR bands of WV02
+- [X] Refactor the code for the GAN part. I want the benefits of `tf.keras` model fitting, evaluation and callbacks since this would make running experiments much smoother. Need to override the `train_step` and `test_step` of the Keras `Model` class https://www.tensorflow.org/guide/keras/customizing_what_happens_in_fit
+- [X] Implement stepwise learning rate scheduler for Adam optimizer (as in paper)
+- [X] Document implementation of matlab code as a ´tf.keras´ metric as a [notebook](https://github.com/onordberg/deep-learning/blob/main/matlab-function-as-metric-in-tf.keras-model.ipynb)/blog post with simple demo data and model
 
 ### Work in progress
 - [ ] Implement metrics in TensorFlow (or in Python as a custom metric)
@@ -50,10 +53,10 @@ The actual thesis is located in a separate private repository https://github.com
     - [NIQE](https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=6353522&ref=aHR0cHM6Ly9pZWVleHBsb3JlLmllZWUub3JnL2Fic3RyYWN0L2RvY3VtZW50LzYzNTM1MjI=&tag=1) which is available in Python as a measure in the [scikit-video](http://www.scikit-video.org/stable/modules/generated/skvideo.measure.niqe.html) package.
     - and [Ma et. al.](https://www.sciencedirect.com/science/article/pii/S107731421630203X) which to my knowledge is only available as a [matlab repository](https://github.com/chaoma99/sr-metric)
   - Both are available in the official [matlab repository](https://github.com/roimehrez/PIRM2018) used for evaluation in the PIRM-SR 2018 competition.
-  - Status: I fired up Matlab and verified that the functions are working and giving reasonable results on the satellite ground truth (PAN/HR) as well as the SR images. However NIQE in particular requires larger image sizes than 128x128. Tried with 1024x1024 and this gave reasonable results. This leads me to design a training/evaluation scheme in my experiments that use larger tile sizes for the validation and test sets. Since my model is fully convolutional variable tile size is possible, and I also verified that this is possible. Due to memory constraints on the GPU the batch size needs to be lower during the validation set evaluation than during training.
-    - I am now trying to compile the `Ma et. al.` Matlab code as a Python package (supported in Matlab). I consider re-implementing the `Ma et. al.` code from the ground up in Python as too time-consuming for this project so hopefully the compilation shortcut works.
-    - For NIQE there are some indications in discussion threads that the scikit-video implementation is buggy so to be able to trust this implementation a comparison with the matlab implementation is needed. If there are deviations the Matlab implementation seem more trustworthy.
-- [ ] Refactor the code for the GAN part. I want the benefits of `tf.keras` model fitting, evaluation and callbacks since this would make running experiments much smoother. Need to override the `train_step` and `test_step` of the Keras `Model` class https://www.tensorflow.org/guide/keras/customizing_what_happens_in_fit
+  - Status:
+    - [X] `Ma et al.`
+    - [ ] NIQE: There are some indications in discussion threads that the scikit-video implementation is buggy so to be able to trust this implementation a comparison with the matlab implementation is needed. If there are deviations the Matlab implementation seem more trustworthy.
+- [ ] Create a simple cloud/sea tile classificator. After some preliminary training runs I have identified that it is troublesome that almost 50% of all tiles are sea or clouds only. I think the simplest, cleanest way to counter this is to create a neural net cloud/sea detector and undersample those tiles significantly when generating tiles from the satellite images. I hypothesize that not much labeled data is needed for the classificator to generalize well. Alternatively I could have manually drawn a polygon that include the sea area in the images, but this would also eliminate ships and would not help with clouds.
 
 
 ### Next
