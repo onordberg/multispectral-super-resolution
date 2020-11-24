@@ -108,34 +108,55 @@ def resize_all_sat_imgs_to_new_pixel_size(meta, save_dir, new_pixel_size_pan=(1.
                       new_pixel_size_pan = new_pixel_size_pan, 
                       sr_factor = sr_factor, resampling = resampling)
 
-def allocating_tiles(meta, n_tiles_train, n_tiles_val, n_tiles_test):
+def allocate_tiles(meta, by_partition=True, n_tiles_train=0, n_tiles_val=0, n_tiles_test=0, n_tiles_total=0,
+                   new_column_name='n_tiles'):
+    #n_tiles_total only to be used when by_partition=False
     counts_df = pd.DataFrame(index=meta.index)
-    counts_df['n_tiles'] = None
+    counts_df[new_column_name] = 0
 
-    for p in ['train', 'val', 'test']:
-        if p == 'train' and n_tiles_train > 0:
-            n_tiles = n_tiles_train
-        elif p == 'val' and n_tiles_val > 0:
-            n_tiles = n_tiles_val
-        elif p == 'test' and n_tiles_test > 0:
-            n_tiles = n_tiles_test
-        else:
-            continue # If n_tiles_part is 0
+    # when allocating by partition they are looped through
+    if by_partition:
+        for p in ['train', 'val', 'test']:
+            if p == 'train' and n_tiles_train > 0:
+                n_tiles = n_tiles_train
+            elif p == 'val' and n_tiles_val > 0:
+                n_tiles = n_tiles_val
+            elif p == 'test' and n_tiles_test > 0:
+                n_tiles = n_tiles_test
+            else:
+                continue # If n_tiles_part is 0
             
-        l = list(meta[meta['train_val_test'] == p]['area_ratio'].index)
-        w = list(meta[meta['train_val_test'] == p]['area_ratio'].values)
+            # list of image names (index names) that will be allocated
+            l = list(meta[meta['train_val_test'] == p]['area_ratio'].index)
+            # list of weights based on the area_ratio of an image
+            # (small images will get less tiles allocated than large images)
+            w = list(meta[meta['train_val_test'] == p]['area_ratio'].values)
 
-        sampling = random.choices(l, weights = w, k = n_tiles)
-        print('Allocated', n_tiles, 'tiles across the', 
-              meta['train_val_test'].value_counts()[p], 
-              'images in the', p, 'partition.' )
-        counts = pd.DataFrame.from_dict(dict(Counter(sampling)), 
-                                        orient = 'index', 
-                                        columns = ['n_tiles'])
-        counts_df.update(counts)        
+            # the actual sampling
+            sampling = random.choices(l, weights = w, k = n_tiles)
+            print('Allocated', n_tiles, 'tiles across the', 
+                  meta['train_val_test'].value_counts()[p], 
+                  'images in the', p, 'partition.' )
+            
+            # collecting the samples in a dataframe and updating for every partition
+            counts = pd.DataFrame.from_dict(dict(Counter(sampling)), 
+                                            orient = 'index', 
+                                            columns = [new_column_name])
+            counts_df.update(counts)
     
-    meta['n_tiles'] = counts_df
-    meta['n_tiles'] = meta['n_tiles'].astype('int32')
+    # when allocating without partition it is straight-forward
+    else:
+        l = list(meta['area_ratio'].index)
+        w = list(meta['area_ratio'].values)
+        sampling = random.choices(l, weights = w, k = n_tiles_total)
+        counts = pd.DataFrame.from_dict(dict(Counter(sampling)), 
+                                            orient = 'index', 
+                                            columns = [new_column_name])
+        counts_df.update(counts)
+    
+    # "merge" tile counts dataframe with main metadata dataframe
+    meta[new_column_name] = counts_df
+    meta[new_column_name] = meta[new_column_name].astype('int32')
     return meta
 
 def get_random_box(img_shape, crop_size):
