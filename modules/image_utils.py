@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pathlib
 import numpy as np
+import math
 import tensorflow as tf
 
 def stretch(image, individual_bands = True):
@@ -175,13 +176,16 @@ def plot_comparison(ds, pretrain_model = False, gan_model = False, bicubic = Tru
     imgs['ms_mean'] = tf.math.reduce_mean(imgs['ms'], axis = -1).numpy()
     plot['ms_mean'], gray['ms_mean'] = True, True
     
+    imgs['pan'] = batch[1].numpy()[0,:,:,0]
+    plot['pan'], gray['pan'] = True, True
+    
     if rgb:
         imgs['ms_rgb'] = ms_to_rgb(imgs['ms'], sensor = sensor)
         plot['ms_rgb'], gray['ms_rgb'] = True, False
     
     if bicubic:
         imgs['bicubic'] = tf.image.resize(imgs['ms'], 
-                                          [imgs['ms'].shape[0]*SR_FACTOR, imgs['ms'].shape[1]*SR_FACTOR], 
+                                          [imgs['pan'].shape[0], imgs['pan'].shape[1]], 
                                           method=tf.image.ResizeMethod.BICUBIC).numpy()
 
         imgs['bicubic_mean'] = tf.math.reduce_mean(imgs['bicubic'], axis = -1).numpy()
@@ -198,9 +202,6 @@ def plot_comparison(ds, pretrain_model = False, gan_model = False, bicubic = Tru
         imgs['sr_gan'] = gan_model.predict(batch)[0,:,:,0]
         plot['sr_gan'] = True
         gray['sr_gan'] = True
-        
-    imgs['pan'] = batch[1].numpy()[0,:,:,0]
-    plot['pan'], gray['pan'] = True, True
     
     if pansharp:
         if pretrain:
