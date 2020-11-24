@@ -216,7 +216,7 @@ def is_img_all_cloud_or_sea(img, sd_treshold):
     else:
         return False
 
-def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, print_tile_info=False):
+def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, cloud_sea_removal=True, print_tile_info=False):
     image_string_UID = get_string_uid(row, row['int_uid'])
     print(row['train_val_test'], image_string_UID, '- Generating', row['n_tiles'], 'tiles')
     partition_dir = pathlib.Path(save_dir, row['train_val_test'])
@@ -254,8 +254,9 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, print_ti
                 pan_win_transform = pan_src.window_transform(pan_win)
                 
                 # CLOUD/SEA DETECTOR. TODO: REPLACE WITH PROPER DETECTOR
-                is_ms_cloud_or_sea = is_img_all_cloud_or_sea(ms_tile, sd_treshold=90.0)
-                is_pan_cloud_or_sea = is_img_all_cloud_or_sea(pan_tile, sd_treshold=10.0)
+                if cloud_sea_removal:
+                    is_ms_cloud_or_sea = is_img_all_cloud_or_sea(ms_tile, sd_treshold=90.0)
+                    is_pan_cloud_or_sea = is_img_all_cloud_or_sea(pan_tile, sd_treshold=10.0)
                 
                 if is_border_pixel_in_image(ms_tile):
                     if print_tile_info:
@@ -272,7 +273,7 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, print_ti
                 ########################################################################
                 # CLOUD/SEA TILE REMOVAL!!!
                 ########################################################################
-                elif is_ms_cloud_or_sea or is_pan_cloud_or_sea:
+                elif cloud_sea_removal and (is_ms_cloud_or_sea or is_pan_cloud_or_sea):
                     if print_tile_info:
                         print('Tile', i, 'from image', image_string_UID, 
                               'is probably only sea or clouds')
@@ -310,14 +311,12 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, print_ti
     print('Number of tiles discarded due to only clouds or sea:', discard_count_cloud_sea)
     print()
 
-def generate_all_tiles(meta, save_dir):
+def generate_all_tiles(meta, save_dir, cloud_sea_removal=True):
     n_tiles_train = count_images_in_partition(meta, train_val_test='train')
     n_tiles_val = count_images_in_partition(meta, train_val_test='val')
     n_tiles_test = count_images_in_partition(meta, train_val_test='test')
     
     print('Generating', n_tiles_train, 'training,', 
           n_tiles_val, 'validation and', n_tiles_test, 'test tiles:')
-    meta.apply(generate_tiles, axis = 1, save_dir = save_dir)
+    meta.apply(generate_tiles, axis = 1, save_dir = save_dir, cloud_sea_removal = cloud_sea_removal)
     print('Tile generation finished')
-    
-    
