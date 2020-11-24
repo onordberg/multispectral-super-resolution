@@ -180,7 +180,7 @@ def plot_comparison(ds, pretrain_model = False, gan_model = False, bicubic = Tru
     plot['pan'], gray['pan'] = True, True
     
     if rgb:
-        imgs['ms_rgb'] = ms_to_rgb(imgs['ms'], sensor = sensor)
+        imgs['ms_rgb'] = stretch(ms_to_rgb(imgs['ms'], sensor = sensor))
         plot['ms_rgb'], gray['ms_rgb'] = True, False
     
     if bicubic:
@@ -191,7 +191,7 @@ def plot_comparison(ds, pretrain_model = False, gan_model = False, bicubic = Tru
         imgs['bicubic_mean'] = tf.math.reduce_mean(imgs['bicubic'], axis = -1).numpy()
         plot['bicubic_mean'], gray['bicubic_mean'] = True, True
         if rgb:
-            imgs['bicubic_rgb'] = ms_to_rgb(imgs['bicubic'], sensor = sensor)
+            imgs['bicubic_rgb'] = stretch(ms_to_rgb(imgs['bicubic'], sensor = sensor))
             plot['bicubic_rgb'], gray['bicubic_rgb'] = True, False
     
     if pretrain:
