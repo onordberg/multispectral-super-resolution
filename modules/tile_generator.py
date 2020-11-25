@@ -320,7 +320,7 @@ def generate_all_tiles(meta, save_dir, ms_height_width=(32,32), sr_factor=4,
     print('Generating', n_tiles_train, 'training,', 
           n_tiles_val, 'validation and', n_tiles_test, 'test tiles:')
     meta.apply(generate_tiles, axis=1, save_dir=save_dir, 
-               ms_height_width=ms_heigh_width, sr_factor=sr_factor, 
+               ms_height_width=ms_height_width, sr_factor=sr_factor, 
                cloud_sea_removal = cloud_sea_removal)
     print('Tile generation finished')
     
