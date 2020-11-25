@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import pathlib
 import numpy as np
 import math
+import rasterio
+import rasterio.plot
 import tensorflow as tf
 
 def stretch(image, individual_bands = True):
@@ -105,6 +107,35 @@ def ms_to_rgb_batch(ms_batch, sensor = 'WV02'):
     for i in range(batch_size):
         batch_out[i,:,:,:] = ms_to_rgb(ms_batch[i,:,:,:], sensor=sensor)
     return batch_out
+
+def geotiff_to_ndarray(tif_path):
+    if isinstance(tif_path, str):
+        tif_path = pathlib.Path(tif_path)
+
+    with rasterio.open(tif_path) as src:
+        img = src.read()
+        img = rasterio.plot.reshape_as_image(img) # from channels first to channels last
+        return img
+
+def ndarray_to_png(arr, png_path, ms_or_pan='pan', scale=True):
+    if isinstance(png_path, str):
+        png_path = pathlib.Path(png_path)
+    
+    tf.keras.preprocessing.image.save_img(png_path, arr, data_format='channels_last', 
+                                          file_format='png', scale=scale)
+    
+def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, sensor='WV02'):
+    if isinstance(tif_path, str):
+        tif_path = pathlib.Path(tif_path)
+    png_path = tif_path.with_suffix('.png')
+    img = geotiff_to_ndarray(tif_path)
+    
+    if ms_or_pan == 'ms':
+        img = ms_to_rgb(img, sensor=sensor)
+        img = stretch(img)
+        
+    ndarray_to_png(img, png_path, ms_or_pan=ms_or_pan, scale=scale)
+
     
 def plot_subplot(ax, img, title, gray = False, metrics = False):
     ax.set_title(title)
