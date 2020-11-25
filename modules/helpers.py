@@ -6,10 +6,7 @@ def get_int_uid(meta, string_UIDs):
     else:
         return meta.loc[string_UIDs]['int_uid'].tolist()
 
-def get_string_uid(meta, int_UIDs):
-    # Could probably be neater
-    # Accepts list of ints and single int
-    
+def get_string_uid(meta, int_UIDs):    
     # If meta is just a row the answer is simple
     if isinstance(meta, pd.core.series.Series):
         return meta.name
@@ -24,6 +21,12 @@ def get_string_uid(meta, int_UIDs):
         return l[0]
     else:
         return l
+    
+def get_sensor(meta, string_UIDs):
+    if isinstance(string_UIDs, str):
+        return meta.loc[string_UIDs, 'sensorVehicle']
+    elif isinstance(string_UIDs, list):
+        return meta.loc[string_UIDs, 'sensorVehicle'].tolist()
      
 def count_images_in_partition(meta, train_val_test):
     try: 
