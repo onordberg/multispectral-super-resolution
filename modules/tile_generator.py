@@ -311,12 +311,16 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, cloud_se
     print('Number of tiles discarded due to only clouds or sea:', discard_count_cloud_sea)
     print()
 
-def generate_all_tiles(meta, save_dir, cloud_sea_removal=True):
+def generate_all_tiles(meta, save_dir, ms_height_width=(32,32), sr_factor=4,
+                       cloud_sea_removal=True):
     n_tiles_train = count_images_in_partition(meta, train_val_test='train')
     n_tiles_val = count_images_in_partition(meta, train_val_test='val')
     n_tiles_test = count_images_in_partition(meta, train_val_test='test')
     
     print('Generating', n_tiles_train, 'training,', 
           n_tiles_val, 'validation and', n_tiles_test, 'test tiles:')
-    meta.apply(generate_tiles, axis = 1, save_dir = save_dir, cloud_sea_removal = cloud_sea_removal)
+    meta.apply(generate_tiles, axis=1, save_dir=save_dir, 
+               ms_height_width=ms_heigh_width, sr_factor=sr_factor, 
+               cloud_sea_removal = cloud_sea_removal)
     print('Tile generation finished')
+    
