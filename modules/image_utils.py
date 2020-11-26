@@ -124,7 +124,7 @@ def ndarray_to_png(arr, png_path, ms_or_pan='pan', scale=True):
     tf.keras.preprocessing.image.save_img(png_path, arr, data_format='channels_last', 
                                           file_format='png', scale=scale)
     
-def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, sensor='WV02'):
+def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, stretch_img=True, sensor='WV02'):
     if isinstance(tif_path, str):
         tif_path = pathlib.Path(tif_path)
     png_path = tif_path.with_suffix('.png')
@@ -132,7 +132,8 @@ def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, sensor='WV02'):
     
     if ms_or_pan == 'ms':
         img = ms_to_rgb(img, sensor=sensor)
-        img = stretch(img)
+    if stretch_img:
+        img = stretch(img, individual_bands=True) 
         
     ndarray_to_png(img, png_path, ms_or_pan=ms_or_pan, scale=scale)
 
