@@ -209,14 +209,15 @@ def is_border_pixel_in_image(img):
     else:
         return False
     
-def is_img_all_cloud_or_sea(img, sd_treshold):
+def is_img_all_cloud_or_sea(img, model):
     # Very simplified categorization at the moment
     if np.std(img) < sd_treshold:
         return True
     else:
         return False
 
-def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, cloud_sea_removal=True, print_tile_info=False):
+def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, cloud_sea_model=None, 
+                   print_tile_info=False):
     image_string_UID = get_string_uid(row, row['int_uid'])
     print(row['train_val_test'], image_string_UID, '- Generating', row['n_tiles'], 'tiles')
     partition_dir = pathlib.Path(save_dir, row['train_val_test'])
@@ -254,9 +255,10 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, cloud_se
                 pan_win_transform = pan_src.window_transform(pan_win)
                 
                 # CLOUD/SEA DETECTOR. TODO: REPLACE WITH PROPER DETECTOR
-                if cloud_sea_removal:
-                    is_ms_cloud_or_sea = is_img_all_cloud_or_sea(ms_tile, sd_treshold=90.0)
-                    is_pan_cloud_or_sea = is_img_all_cloud_or_sea(pan_tile, sd_treshold=10.0)
+                
+                #if cloud_sea_removal:
+                #    is_ms_cloud_or_sea = is_img_all_cloud_or_sea(ms_tile, sd_treshold=90.0)
+                #    is_pan_cloud_or_sea = is_img_all_cloud_or_sea(pan_tile, sd_treshold=10.0)
                 
                 if is_border_pixel_in_image(ms_tile):
                     if print_tile_info:
@@ -313,6 +315,11 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, cloud_se
 
 def generate_all_tiles(meta, save_dir, ms_height_width=(32,32), sr_factor=4,
                        cloud_sea_removal=True):
+    cloud_sea_model = None
+    if cloud_sea_removal:
+        cloud_sea_model_path = pathlib.Path('\models\cloud-sea-classifier\model-with-weights')
+        cloud_sea_model = tf.keras.models.load_model(cloud_sea_model_path)
+    
     n_tiles_train = count_images_in_partition(meta, train_val_test='train')
     n_tiles_val = count_images_in_partition(meta, train_val_test='val')
     n_tiles_test = count_images_in_partition(meta, train_val_test='test')
@@ -321,6 +328,6 @@ def generate_all_tiles(meta, save_dir, ms_height_width=(32,32), sr_factor=4,
           n_tiles_val, 'validation and', n_tiles_test, 'test tiles:')
     meta.apply(generate_tiles, axis=1, save_dir=save_dir, 
                ms_height_width=ms_height_width, sr_factor=sr_factor, 
-               cloud_sea_removal = cloud_sea_removal)
+               cloud_sea_model=cloud_sea_model)
     print('Tile generation finished')
     
