@@ -88,19 +88,19 @@ class PerceptualLoss(tf.keras.losses.Loss):
         
         return tf.keras.Model(vgg.input, vgg.layers[pick_layer].output)  
 
-    def call(self, hr, sr): #hr == y_true, sr == y_pred
+    def feature_extraction(self, img):
         #print(sr.shape, hr.shape)
-        sr_rgb = tf.image.grayscale_to_rgb(sr)
-        hr_rgb = tf.image.grayscale_to_rgb(hr)
+        img_rgb = tf.image.grayscale_to_rgb(img)
         #print(sr_rgb.shape, hr_rgb.shape)
         # the input scale range is [0, 1] (vgg is [0, 255]).
         # 12.75 is rescale factor for vgg featuremaps.
-        preprocess_sr = tf.keras.applications.vgg19.preprocess_input(sr_rgb * 255.) / 12.75
-        preprocess_hr = tf.keras.applications.vgg19.preprocess_input(hr_rgb * 255.) / 12.75
-        #print(preprocess_sr.shape, preprocess_hr.shape)
-        sr_features = self.feature_extractor(preprocess_sr)
-        hr_features = self.feature_extractor(preprocess_hr)
-
+        preprocess_img = tf.keras.applications.vgg19.preprocess_input(img_rgb * 255.) / 12.75
+        img_features = self.feature_extractor(preprocess_img)
+        return img_features
+    
+    def call(self, hr, sr): #hr == y_true, sr == y_pred
+        hr_features = self.feature_extraction(hr)
+        sr_features = self.feature_extraction(sr)
         return self.loss_func(hr_features, sr_features)
     
 class EsrganTotalGeneratorLoss(tf.keras.losses.Loss):
