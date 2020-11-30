@@ -2,9 +2,95 @@ import matplotlib.pyplot as plt
 import pathlib
 import numpy as np
 import math
+import json
 import rasterio
 import rasterio.plot
 import tensorflow as tf
+
+def get_max_uint_from_bit_depth(bit_depth):
+    return 2**bit_depth-1
+
+def input_scaler(arr, radius=1.0, output_dtype=np.float32, uint_bit_depth=11, 
+                 mean_correction=False, mean=None):
+    """Scales an int ndarray to a float ndarray with a specified radius around 0.0
+
+    If radius=1.0 the scaler scales the ndarray to [-1.0, 1.0].
+    Function can also center the ndarray around a given mean. If a mean is specified
+    it will subtract the mean and the scaling will still respect hard cutoffs at 
+    the specified radius. A consequence of this is that the whole range between
+    -radius and +radius is not used.
+    This scaler is especially useful if you want to subtract the mean, but avoid having
+    data points outside the specified radius. A simple normalization approach would not
+    suffice in this case.
+
+    Args:
+        arr: numpy.ndarray of any shape (usually image(s))
+        radius: Radius around 0.0 that arr will be scaled to be within
+        output_dtype: Data type of the output (should be float variant)
+        uint_bit_depth: The unsigned integer bit depth of the input array.
+                        Allows for scaling of custom bit depths like 11, 7 etc.
+                        instead of only relying on the integer dtype bit depths
+        mean_correction: True/False.
+                         True: Subtracts a mean when scaling so that the mean
+                               of the outputs are 0.0. Must then also specify mean arg.
+        mean: Mean scalar value that will be subtracted
+
+    Returns:
+        A float numpy ndarray scaled to a radius around 0.0
+    """
+    min_uint_value = 0
+    max_uint_value = get_max_uint_from_bit_depth(uint_bit_depth)
+    arr = arr.astype(np.float64)
+    if mean_correction and isinstance(mean, (float, int)):
+        max_uint_value -= mean
+        min_uint_value -= mean
+        arr -= mean
+        abs_max_uint_value = max(abs(min_uint_value), abs(max_uint_value))
+        scale = abs_max_uint_value/radius
+    else:
+        arr -= max_uint_value/2.0
+        scale = max_uint_value/(2.0 * radius)
+    arr /= scale
+    arr = arr.astype(output_dtype)
+    return arr
+
+def mean_sd_of_all_train_tiles(train_tiles_path, write_json=True):
+    if isinstance(train_tiles_path, str):
+        train_tiles_path = pathlib.Path(train_tiles_path)
+    tile_paths = list(train_tiles_path.glob(str('**/*.tif')))
+    
+    n = len(tile_paths)
+    means = np.zeros(n)
+    sds = np.zeros(n)
+    print('Path to image tiles:', train_tiles_path)
+    print('Calculating mean and sd of', n, 'image tiles.')
+    for i, tile_path in enumerate(tile_paths):
+        img = geotiff_to_ndarray(tile_path)
+        means[i] = np.mean(img)
+        sds[i] = np.std(img)
+        if i % 5000 == 0:
+            print('Calculated mean and sd of', i, 'tiles')
+
+    grand_mean = np.mean(means)
+    grand_sd = np.mean(sds)
+    
+    if write_json:
+        d = {'mean': grand_mean, 
+             'sd': grand_sd}
+        json_object = json.dumps(d, indent=4)
+        json_path = train_tiles_path.joinpath('mean_sd.json')
+        with open(json_path, 'w') as file:
+            file.write(json_object)
+            
+    return grand_mean, grand_sd
+
+def read_mean_sd_json(train_tiles_path):
+    if isinstance(train_tiles_path, str):
+        train_tiles_path = pathlib.Path(train_tiles_path)
+    json_path = train_tiles_path.joinpath('mean_sd.json')
+    with open(json_path, 'r') as file:
+        d = json.load(file)
+    return d['mean'], d['sd']
 
 def stretch(image, individual_bands = True):
     dims = len(image.shape)
