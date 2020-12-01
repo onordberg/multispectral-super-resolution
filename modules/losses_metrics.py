@@ -89,14 +89,26 @@ class PerceptualLoss(tf.keras.losses.Loss):
         return tf.keras.Model(vgg.input, vgg.layers[pick_layer].output)  
 
     def feature_extraction(self, img):
-        #print(sr.shape, hr.shape)
-        img_rgb = tf.image.grayscale_to_rgb(img)
-        #print(sr_rgb.shape, hr_rgb.shape)
-        # the input scale range is [0, 1] (vgg is [0, 255]).
-        # 12.75 is rescale factor for vgg featuremaps.
-        preprocess_img = tf.keras.applications.vgg19.preprocess_input(img_rgb * 255.) / 12.75
-        img_features = self.feature_extractor(preprocess_img)
-        return img_features
+        # scaling from [-1,1] to [0,255]
+        img = ((img + 1.0)/2) * 255.
+        
+        # duplicate 1 channel to 3 channel image
+        img = tf.image.grayscale_to_rgb(img)
+        
+        # official preprocessing of the image
+        # https://www.tensorflow.org/api_docs/python/tf/keras/applications/vgg19/preprocess_input
+        img = tf.keras.applications.vgg19.preprocess_input(img)
+        
+        # feature extraction:
+        img_features = self.feature_extractor(img)
+        
+        # loss function weight for vgg featuremaps as presented in function (5) in SRGAN paper
+        features_shape = img_features.get_shape()
+        h = features_shape[1]
+        w = features_shape[2]
+        weight = h*w
+        
+        return img_features/weight
     
     def call(self, hr, sr): #hr == y_true, sr == y_pred
         hr_features = self.feature_extraction(hr)
