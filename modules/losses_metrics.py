@@ -87,7 +87,7 @@ class PerceptualLoss(tf.keras.losses.Loss):
 
     def feature_extraction(self, img):
         # scaling from [-1,1] to [0,255]
-        img = ((img + 1.0)/2) * 255.
+        img = ((img + 1.)/2.) * 255.
         
         # duplicate 1 channel to 3 channel image
         img = tf.image.grayscale_to_rgb(img)
@@ -95,10 +95,10 @@ class PerceptualLoss(tf.keras.losses.Loss):
         # official preprocessing of the image
         # https://www.tensorflow.org/api_docs/python/tf/keras/applications/vgg19/preprocess_input
         img = tf.keras.applications.vgg19.preprocess_input(img)
-        assert not tf.executing_eagerly() # Checks that the graph is static
+
         # feature extraction:
         img_features = self.feature_extractor(img)
-        assert not tf.executing_eagerly() # Checks that the graph is static
+
         # loss function weight for vgg featuremaps as presented in function (5) in SRGAN paper
         #features_shape = img_features.get_shape()
         #h = features_shape[1]
