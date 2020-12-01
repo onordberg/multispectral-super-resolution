@@ -1,18 +1,12 @@
 import tensorflow as tf
-
-class PsnrMetric(tf.keras.losses.Loss):
-    def __init__(self, name = 'PSNR'):
-        super().__init__(name=name)
-        
-    def call(self, hr, sr):
-        return tf.image.psnr(hr, sr, max_val = 1.0)
     
-class SsimMetric(tf.keras.losses.Loss):
-    def __init__(self, name = 'SSIM'):
-        super().__init__(name=name)
-        
-    def call(self, hr, sr):
-        return tf.image.ssim(hr, sr, max_val = 1.0)
+def psnr(hr, sr):
+    max_val = 2.0 # images scaled to [-1,1] -> range=2
+    return tf.image.psnr(hr, sr, max_val = max_val)
+
+def ssim(hr, sr):
+    max_val = 2.0 # images scaled to [-1,1] -> range=2
+    return tf.image.ssim(hr, sr, max_val = max_val)
 
 class DiscriminatorLoss(tf.keras.losses.Loss):
     def __init__(self, name='D_discr_loss'):
@@ -27,21 +21,23 @@ class DiscriminatorLoss(tf.keras.losses.Loss):
             cross_entropy(tf.zeros_like(sr), sigma(sr - tf.reduce_mean(hr))))
     
 class GeneratorLoss(tf.keras.losses.Loss):
-    def __init__(self, name='G_generator_loss'):
+    def __init__(self, weight=0.005, name='G_generator_loss'):
         super().__init__(name=name)
+        self.weight = weight
     
     # ragan loss
     def call(self, hr, sr): #hr == y_true, sr == y_pred
         cross_entropy = tf.keras.losses.BinaryCrossentropy(from_logits=False)
         sigma = tf.sigmoid
-        return 0.5 * (
+        return self.weight * 0.5 * (
             cross_entropy(tf.ones_like(sr), sigma(sr - tf.reduce_mean(hr))) +
             cross_entropy(tf.zeros_like(hr), sigma(hr - tf.reduce_mean(sr))))
     
 class PixelLoss(tf.keras.losses.Loss):
-    def __init__(self, l1_l2 = 'l1', name='G_pixel_loss'):
+    def __init__(self, l1_l2 = 'l1', weight=0.01, name='G_pixel_loss'):
         super().__init__(name=name)
         self.loss_func = self.l1_l2_loss(l1_l2)
+        self.weight = weight
     
     def l1_l2_loss(self, l1_l2):
         if l1_l2 == 'l1':
@@ -54,13 +50,14 @@ class PixelLoss(tf.keras.losses.Loss):
         return loss_func
     
     def call(self, hr, sr): #hr == y_true, sr == y_pred
-        return self.loss_func(hr, sr)
+        return self.weight * self.loss_func(hr, sr)
 
 class PerceptualLoss(tf.keras.losses.Loss):
-    def __init__(self, l1_l2='l1', output_layer=54, before_act=True, name='G_perceptual_loss'):
+    def __init__(self, l1_l2='l1', output_layer=54, before_act=True, weight=1.0, name='G_perceptual_loss'):
         super().__init__(name=name)
         self.loss_func = self.l1_l2_loss(l1_l2)
         self.feature_extractor = self.build_feature_extractor(output_layer, before_act)
+        self.weight = weight
     
     def l1_l2_loss(self, l1_l2):
         if l1_l2 == 'l1':
@@ -98,41 +95,19 @@ class PerceptualLoss(tf.keras.losses.Loss):
         # official preprocessing of the image
         # https://www.tensorflow.org/api_docs/python/tf/keras/applications/vgg19/preprocess_input
         img = tf.keras.applications.vgg19.preprocess_input(img)
-        
+        assert not tf.executing_eagerly() # Checks that the graph is static
         # feature extraction:
         img_features = self.feature_extractor(img)
-        
+        assert not tf.executing_eagerly() # Checks that the graph is static
         # loss function weight for vgg featuremaps as presented in function (5) in SRGAN paper
-        features_shape = img_features.get_shape()
-        h = features_shape[1]
-        w = features_shape[2]
-        weight = h*w
+        #features_shape = img_features.get_shape()
+        #h = features_shape[1]
+        #w = features_shape[2]
+        #weight = h*w
         
-        return img_features/weight
+        return img_features
     
     def call(self, hr, sr): #hr == y_true, sr == y_pred
         hr_features = self.feature_extraction(hr)
         sr_features = self.feature_extraction(sr)
-        return self.loss_func(hr_features, sr_features)
-    
-class EsrganTotalGeneratorLoss(tf.keras.losses.Loss):
-    def __init__(self, G_loss_pixel_f, G_loss_pixel_sc, 
-                 G_loss_percep_f, G_loss_percep_sc, 
-                 G_loss_generator_f, G_loss_generator_sc,
-                 name='G_total_loss'):
-        super().__init__(name=name)
-        self.G_loss_pixel_f = G_loss_pixel_f
-        self.G_loss_pixel_sc = G_loss_pixel_sc
-        self.G_loss_percep_f = G_loss_percep_f
-        self.G_loss_percep_sc = G_loss_percep_sc
-        self.G_loss_generator_f = G_loss_generator_f
-        self.G_loss_generator_sc = G_loss_generator_sc
-    
-    def call(self, hr, sr): #hr == y_true, sr == y_pred
-        hr_img, hr_D_output = hr
-        sr_img, sr_D_output = sr
-        
-        pixel = self.G_loss_pixel_sc * self.G_loss_pixel_f(hr_img, sr_img)
-        perceptual = self.G_loss_percep_sc * self.G_loss_percep_f(hr_img, sr_img)
-        generator = self.G_loss_generator_sc * self.G_loss_generator_f(hr_D_output, sr_D_output)
-        return tf.math.add_n([pixel, perceptual, generator])
+        return self.weight * self.loss_func(hr_features, sr_features)
