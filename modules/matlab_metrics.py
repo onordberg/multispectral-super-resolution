@@ -3,10 +3,14 @@ import pathlib
 import tensorflow as tf
 import matlab.engine
 
-def start_matlab():
+def start_matlab(wd_path):
+    if isinstance(wd_path, str):
+        wd_path = pathlib.Path(wd_path)
+    wd_path = str(wd_path.resolve()) # Taking special care around matlab and paths
+
     print('Starting matlab.engine ...')
     eng = matlab.engine.start_matlab()
-    eng.cd(str(pathlib.Path(MATLAB_MA_PATH).resolve()))
+    eng.cd(wd_path)
     eng.addpath('external/matlabPyrTools','external/randomforest-matlab/RF_Reg_C', nargout = 0)
     if isinstance(eng, matlab.engine.matlabengine.MatlabEngine):
         print('matlab.engine started')
