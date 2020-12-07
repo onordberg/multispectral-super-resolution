@@ -368,7 +368,7 @@ class EsrganModel(tf.keras.Model):
         self.G_metric_ssim_mean.update_state(G_metric_ssim)
 
         if self.G_metric_ma_sr_f is not None:
-            G_metric_ma_sr = tf.py_function(self.G_metric_ma_sr_f, [sr], [tf.float32])
+            G_metric_ma_sr = tf.py_function(self.G_metric_ma_sr_f, [sr, self.matlab_engine], [tf.float32])
             assert not tf.executing_eagerly()  # Checks that the graph is static
             self.G_metric_ma_sr_mean.update_state(G_metric_ma_sr)
 
