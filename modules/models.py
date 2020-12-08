@@ -224,6 +224,7 @@ class EsrganModel(tf.keras.Model):
         self.G_metric_ma_mean = None
         self.G_metric_niqe_f = None
         self.G_metric_niqe_mean = None
+        # TODO: Implement Perceptual Index
 
         self.matlab_engine = None
 
