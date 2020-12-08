@@ -1,6 +1,4 @@
 [submodule "modules/sr-metric"]
 	path = modules/matlab/sr-metric
-	url = git@github.com:chaoma99/sr-metric.git
-	ignore = dirty
-[submodule "modules/matlab/sr-metric"]
 	url = git@github.com:onordberg/sr-metric.git
+	ignore = dirty
