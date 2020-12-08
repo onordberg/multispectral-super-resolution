@@ -66,11 +66,9 @@ class MatLabEngine:
         elif numpy_imgs.dtype == 'float32' and self.output_dtype == 'uint16':
             assert abs(self.input_range[0]) == abs(self.input_range[1])
             radius = abs(self.input_range[0])
-            print(numpy_imgs.dtype)
             numpy_imgs = output_scaler(numpy_imgs, radius=radius, output_dtype=self.output_dtype,
                                        uint_bit_depth=self.output_bit_depth,
                                        mean_correction=True, mean=self.scale_mean)
-            print(numpy_imgs.dtype)
         else:
             raise NotImplementedError('dtype of imgs can only be equal to output_dtype or float32, dtype:',
                                       numpy_imgs.dtype)
@@ -79,9 +77,11 @@ class MatLabEngine:
         return numpy_imgs
 
     def matlab_niqe_metric(self, numpy_imgs):
-        imgs = numpy_imgs.copy()
+        if tf.is_tensor(numpy_imgs):
+            imgs = numpy_imgs.numpy()
+        else:
+            imgs = numpy_imgs.copy()
         imgs = self.preprocess_imgs(imgs)
-        print(imgs.shape, imgs.dtype, np.min(imgs), np.max(imgs))
         scipy.io.savemat(self.mat_cache_path_niqe, {'imgs': imgs})
         niqes = self.matlab_engine.computequality_batch(str(self.mat_cache_path_niqe),
                                                         self.blocksizerow, self.blocksizecol,
@@ -96,9 +96,11 @@ class MatLabEngine:
         return niqes
 
     def matlab_ma_metric(self, numpy_imgs):
-        imgs = numpy_imgs.copy()
+        if tf.is_tensor(numpy_imgs):
+            imgs = numpy_imgs.numpy()
+        else:
+            imgs = numpy_imgs.copy()
         imgs = self.preprocess_imgs(imgs)
-        print(imgs.shape, imgs.dtype, np.min(imgs), np.max(imgs))
         scipy.io.savemat(self.mat_cache_path_ma, {'imgs': imgs})
         ma_scores = self.matlab_engine.quality_predict_batch(str(self.mat_cache_path_ma))
         self.last_imgs = imgs
@@ -107,17 +109,3 @@ class MatLabEngine:
         else:
             ma_scores = list(ma_scores[0])
         return ma_scores
-
-    def tf_ma_sr_metric(self, tensor_img, matlab_engine):
-        # TODO: Rewrite as method
-        imgs = tensor_img.numpy()
-        batch_size = imgs.shape[0]
-        mas = np.empty(batch_size, dtype=np.float32)
-        for i in range(batch_size):
-            img = imgs[i,:,:,:]
-            img = stretch_img(img)
-            img = tf.image.convert_image_dtype(img, tf.uint8, saturate=True).numpy()
-            img = shave_borders(img, 4)
-            # print(img.shape, type(img), type(img[0,0,0]), np.min(img), np.max(img))
-            mas[i] = self.matlab_ma_sr_metric(img, matlab_engine)
-        return tf.constant(mas)
