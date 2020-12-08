@@ -7,8 +7,18 @@ from modules.image_utils import *
 
 
 class MatLabEngine:
-    def __init__(self, wd_path, ma=True, niqe=True):
+    last_imgs = None
+
+    def __init__(self, wd_path, ma=True, niqe=True, input_range=(-1,1), output_dtype='uint16', output_bit_depth=11,
+                 scale_mean=0, stretch=False, shave_width=4):
         self.wd_path = wd_path
+        self.input_range = input_range
+        self.output_dtype = output_dtype
+        self.output_bit_depth = output_bit_depth
+        self.scale_mean = scale_mean
+        self.stretch = stretch
+        self.shave_width = shave_width
+
         if niqe:
             self.mat_cache_path_niqe = None
             self.blocksizerow = 96.0
@@ -19,14 +29,6 @@ class MatLabEngine:
             self.mat_cache_path_ma = None
 
         self.matlab_engine = self.start_matlab(ma=ma, niqe=niqe)
-
-        if niqe:
-            self.blocksizerow = 96.0
-            self.blocksizecol = 96.0
-            self.blockrowoverlap = 0.0
-            self.blockcoloverlap = 0.0
-        if ma:
-            self.mat_cache_path_ma = None
 
     def start_matlab(self, ma=True, niqe=True):
         if isinstance(self.wd_path, str):
@@ -39,6 +41,7 @@ class MatLabEngine:
 
         # Ma et al.'s SR metric
         if ma:
+            matlab_engine.addpath('sr-metric', nargout=0)
             matlab_engine.addpath('sr-metric/external/matlabPyrTools',
                                   'sr-metric/external/randomforest-matlab/RF_Reg_C', nargout=0)
             mat_cache_path_ma = self.wd_path.joinpath('cache')
@@ -57,24 +60,53 @@ class MatLabEngine:
             print('matlab.engine started')
         return matlab_engine
 
-    def shave_borders(self, img, shave_width):
-        # TODO: Rewrite as method
-        return img[shave_width:-shave_width, shave_width:-shave_width,:]
+    def preprocess_imgs(self, numpy_imgs):
+        if numpy_imgs.dtype == self.output_dtype:  # uint8 or uint16
+            pass
+        elif numpy_imgs.dtype == 'float32' and self.output_dtype == 'uint16':
+            assert abs(self.input_range[0]) == abs(self.input_range[1])
+            radius = abs(self.input_range[0])
+            print(numpy_imgs.dtype)
+            numpy_imgs = output_scaler(numpy_imgs, radius=radius, output_dtype=self.output_dtype,
+                                       uint_bit_depth=self.output_bit_depth,
+                                       mean_correction=True, mean=self.scale_mean)
+            print(numpy_imgs.dtype)
+        else:
+            raise NotImplementedError('dtype of imgs can only be equal to output_dtype or float32, dtype:',
+                                      numpy_imgs.dtype)
+        if self.shave_width > 0:
+            numpy_imgs = shave_borders(numpy_imgs, self.shave_width)
+        return numpy_imgs
 
     def matlab_niqe_metric(self, numpy_imgs):
-        scipy.io.savemat(self.mat_cache_path_niqe, {'imgs': numpy_imgs})
+        imgs = numpy_imgs.copy()
+        imgs = self.preprocess_imgs(imgs)
+        print(imgs.shape, imgs.dtype, np.min(imgs), np.max(imgs))
+        scipy.io.savemat(self.mat_cache_path_niqe, {'imgs': imgs})
         niqes = self.matlab_engine.computequality_batch(str(self.mat_cache_path_niqe),
                                                         self.blocksizerow, self.blocksizecol,
                                                         self.blockrowoverlap, self.blockcoloverlap,
                                                         self.matlab_engine.workspace['mu_prisparam'],
                                                         self.matlab_engine.workspace['cov_prisparam'])
-        return list(niqes._data)
+        self.last_imgs = imgs
+        if isinstance(niqes, float):
+            niqes = [niqes]
+        else:
+            niqes = list(niqes[0])
+        return niqes
 
-    def matlab_ma_sr_metric(self, numpy_img, matlab_engine):
-        # TODO: Rewrite as method
-        img = matlab.uint8(numpy_img.tolist())
-        ma = matlab_engine.quality_predict(img)
-        return ma
+    def matlab_ma_metric(self, numpy_imgs):
+        imgs = numpy_imgs.copy()
+        imgs = self.preprocess_imgs(imgs)
+        print(imgs.shape, imgs.dtype, np.min(imgs), np.max(imgs))
+        scipy.io.savemat(self.mat_cache_path_ma, {'imgs': imgs})
+        ma_scores = self.matlab_engine.quality_predict_batch(str(self.mat_cache_path_ma))
+        self.last_imgs = imgs
+        if isinstance(ma_scores, float):
+            ma_scores = [ma_scores]
+        else:
+            ma_scores = list(ma_scores[0])
+        return ma_scores
 
     def tf_ma_sr_metric(self, tensor_img, matlab_engine):
         # TODO: Rewrite as method
@@ -83,9 +115,9 @@ class MatLabEngine:
         mas = np.empty(batch_size, dtype=np.float32)
         for i in range(batch_size):
             img = imgs[i,:,:,:]
-            img = stretch(img)
+            img = stretch_img(img)
             img = tf.image.convert_image_dtype(img, tf.uint8, saturate=True).numpy()
-            img = self.shave_borders(img, 4)
+            img = shave_borders(img, 4)
             # print(img.shape, type(img), type(img[0,0,0]), np.min(img), np.max(img))
             mas[i] = self.matlab_ma_sr_metric(img, matlab_engine)
         return tf.constant(mas)
