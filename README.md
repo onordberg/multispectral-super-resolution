@@ -48,9 +48,7 @@ The actual thesis is located in a separate private repository https://github.com
 - [X] Document implementation of matlab code as a ´tf.keras´ metric as a [notebook](https://github.com/onordberg/deep-learning/blob/main/matlab-function-as-metric-in-tf.keras-model.ipynb)/blog post with simple demo data and model
 - [X] Fix wrong scaling of LR and HR images! After noticing GAN training instability I went through a checklist and realized that i have scaled my input images to `[0,1]` `float32`, but my generator output also include negative real numbers. My hypothesis for why I experience GAN training issues is that my discriminator quickly identifies this as a discriminative attribute and my discriminator score inevatibly goes to zero. I am a little unsure of why I did not experience this in previous iterations approximately a month ago, but will for the time being not spend time digging into this and instead scale the images to `[-1,1]` taking into account that the actual bit depth of the satellite images are 11, not 16.
 - [X] Decreased time use of matlab function calls by approximately 200x. Instead of sending matlab double arrays through the API (which for some reason is really slow) matlab arrays are rather saved to disk and loaded from the matlab function. Odd workaround, but seems to be best practice.
-
-### Work in progress
-- [ ] Implement metrics in TensorFlow (or in Python as a custom metric)
+- [X] Implement metrics in TensorFlow (or in Python as a custom metric)
   - Perceptual index (PI) which is often used as an alternative to PSNR and SSIM and also used in the PIRM-SR challenge which ESRGAN won in 2018. PI is a function of two other metrics:
     - [NIQE](https://ieeexplore.ieee.org/stampPDF/getPDF.jsp?tp=&arnumber=6353522&ref=aHR0cHM6Ly9pZWVleHBsb3JlLmllZWUub3JnL2Fic3RyYWN0L2RvY3VtZW50LzYzNTM1MjI=&tag=1) which is available in Python as a measure in the [scikit-video](http://www.scikit-video.org/stable/modules/generated/skvideo.measure.niqe.html) package.
     - and [Ma et. al.](https://www.sciencedirect.com/science/article/pii/S107731421630203X) which to my knowledge is only available as a [matlab repository](https://github.com/chaoma99/sr-metric)
@@ -58,10 +56,14 @@ The actual thesis is located in a separate private repository https://github.com
   - Status:
     - [X] `Ma et al.`
     - [X] NIQE: There are some indications in discussion threads that the scikit-video implementation is buggy so to be able to trust this implementation a comparison with the matlab implementation is needed. If there are deviations the Matlab implementation seem more trustworthy.
-    - [ ] PI (a simple average function of Ma and NIQE)
+    - [X] PI (a simple average function of Ma and NIQE)
+
+### Work in progress
 - [ ] Create a simple cloud/sea tile classificator. After some preliminary training runs I have identified that it is troublesome that almost 50% of all tiles are sea or clouds only. I think the simplest, cleanest way to counter this is to create a neural net cloud/sea detector and undersample those tiles significantly when generating tiles from the satellite images. I hypothesize that not much labeled data is needed for the classificator to generalize well. Alternatively I could have manually drawn a polygon that include the sea area in the images, but this would also eliminate ships and would not help with clouds.
   - Status: 2500 tiles in various sizes generated and labeled. EfficientNet model trained with data augmentation achieving validation accuracy of approx (0.90, 0.95). Remaining: Integrate in tile generator.
 - [ ] Do a study of how tile sizes affect NIQE and Ma metrics. Hypothesis: Too small tile sizes are not good. This could probably be an appendix in the thesis if it shows something interesting.
+- [ ] Implement all abstract methods of my `Esrgan` model class
+- [ ] Calculate `Ma`, `NIQE` and `PI` on a smaller proportion of the validation set (due to performance reasons)
 
 
 ### Next
