@@ -13,7 +13,7 @@ def get_max_uint_from_bit_depth(bit_depth):
 
 
 def input_scaler(arr, radius=1.0, output_dtype='float32', uint_bit_depth=11,
-                 mean_correction=False, mean=None):
+                 mean_correction=False, mean=None, print_ranges=False):
     """Scales an int ndarray to a float ndarray with a specified radius around 0.0
 
     If radius=1.0 the scaler scales the ndarray to [-1.0, 1.0].
@@ -42,6 +42,10 @@ def input_scaler(arr, radius=1.0, output_dtype='float32', uint_bit_depth=11,
     """
     min_uint_value = 0
     max_uint_value = get_max_uint_from_bit_depth(uint_bit_depth)
+    if print_ranges:
+        print('Scaler ranges:')
+        print('Input (uint) min, max:', min_uint_value, max_uint_value)
+    uint_range = max_uint_value - min_uint_value + 1
     arr = arr.astype(np.float64)
     if mean_correction and isinstance(mean, (float, int)):
         max_uint_value -= mean
@@ -52,6 +56,13 @@ def input_scaler(arr, radius=1.0, output_dtype='float32', uint_bit_depth=11,
     else:
         arr -= max_uint_value / 2.0
         scale = max_uint_value / (2.0 * radius)
+    float_range = uint_range / scale
+    min_float_value = min_uint_value / scale
+    max_float_value = max_uint_value / scale
+    if print_ranges:
+        print('Input (uint) range:', uint_range)
+        print('Output (float) range', float_range)
+        print('Output (float) min, max:', min_float_value, max_float_value)
     arr /= scale
     arr = arr.astype(output_dtype)
     return arr

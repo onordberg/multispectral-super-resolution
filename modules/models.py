@@ -118,11 +118,19 @@ def rrdb_model(size_in, channels_in, channels_out, n_blocks=23, n_filters=64, gr
 
 
 def build_generator(pretrain_or_gan='pretrain', pretrain_learning_rate=5e-5, pretrain_loss_l1_l2='l1',
-                    pretrain_beta_1=0.9, pretrain_beta_2=0.999, pretrain_metrics=(psnr, ssim),
+                    pretrain_beta_1=0.9, pretrain_beta_2=0.999, pretrain_metrics=('PSNR', 'SSIM'),
+                    scaled_range=2.0,
                     n_channels_in=4, n_channels_out=1,
                     height_width_in=None,  # None will make network image size agnostic
                     n_filters=64, n_blocks=23):
     rrdb = rrdb_model(height_width_in, n_channels_in, n_channels_out, n_blocks=n_blocks, n_filters=n_filters)
+
+    metrics_compile = []
+    if 'PSNR' in pretrain_metrics or 'psnr' in pretrain_metrics:
+        metrics_compile.append(PSNR(range=scaled_range))
+    if 'SSIM' in pretrain_metrics or 'ssim' in pretrain_metrics:
+        metrics_compile.append(SSIM(range=scaled_range))
+
     if pretrain_or_gan == 'pretrain':
         if pretrain_loss_l1_l2 == 'l1':
             loss = 'mean_absolute_error'
@@ -132,7 +140,7 @@ def build_generator(pretrain_or_gan='pretrain', pretrain_learning_rate=5e-5, pre
             raise ValueError('pretrain_l1_l2 argument must be either "l1" or "l2"')
         rrdb.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=pretrain_learning_rate,
                                                         beta_1=pretrain_beta_1, beta_2=pretrain_beta_2),
-                     loss=loss, metrics=pretrain_metrics)
+                     loss=loss, metrics=metrics_compile)
     return rrdb
 
 
@@ -183,7 +191,7 @@ def build_discriminator(size, channels, n_filters=64, weight_decay=0., name='Dis
 
 
 def build_bicubic_model(upsample_factor, shape_in=(32, 32, 3),
-                        loss='mean_absolute_error', metrics=(psnr, ssim), **kwargs):
+                        loss='mean_absolute_error', metrics=('PSNR', 'SSIM'), scaled_range=2.0):
     inputs = Input(shape_in, name='input_image')
     x = Lambda(lambda z:
                tf.expand_dims(tf.math.reduce_mean(z, axis=-1), axis=-1))(inputs)
@@ -192,7 +200,14 @@ def build_bicubic_model(upsample_factor, shape_in=(32, 32, 3),
                                method=tf.image.ResizeMethod.BICUBIC, preserve_aspect_ratio=False,
                                antialias=False, name=None))(x)
     model = tf.keras.Model(inputs, x, name='bicubic_upsample_model')
-    model.compile(loss=loss, metrics=metrics, **kwargs)
+
+    metrics_compile = []
+    if 'PSNR' in metrics or 'psnr' in metrics:
+        metrics_compile.append(PSNR(range=scaled_range))
+    if 'SSIM' in metrics or 'ssim' in metrics:
+        metrics_compile.append(SSIM(range=scaled_range))
+
+    model.compile(loss=loss, metrics=metrics_compile)
     return model
 
 
@@ -224,7 +239,8 @@ class EsrganModel(tf.keras.Model):
         self.G_metric_ma_mean = None
         self.G_metric_niqe_f = None
         self.G_metric_niqe_mean = None
-        # TODO: Implement Perceptual Index
+        self.G_metric_pi_f = None
+        self.G_metric_pi_mean = None
 
         self.matlab_engine = None
 
@@ -240,7 +256,7 @@ class EsrganModel(tf.keras.Model):
 
                         G_loss_generator_w=0.005,
                         metric_reg=False, metric_ma=True, metric_niqe=True,
-                        matlab_wd_path='modules/matlab', scale_mean=0, shave_width=4, **kwargs):
+                        matlab_wd_path='modules/matlab', scale_mean=0, scaled_range=2.0, shave_width=4, **kwargs):
         self.G_optimizer = G_optimizer
         self.D_optimizer = D_optimizer
 
@@ -267,11 +283,11 @@ class EsrganModel(tf.keras.Model):
             # If regularization is reported, discriminator loss without reg is also reported:
             self.D_loss_mean = tf.keras.metrics.Mean(self.D_loss_f.name)
 
-        self.G_metric_psnr_f = psnr
-        self.G_metric_ssim_f = ssim
+        self.G_metric_psnr_f = PSNR(range=scaled_range)
+        self.G_metric_ssim_f = SSIM(range=scaled_range)
 
-        self.G_metric_psnr_mean = tf.keras.metrics.Mean('psnr')
-        self.G_metric_ssim_mean = tf.keras.metrics.Mean('ssim')
+        self.G_metric_psnr_mean = tf.keras.metrics.Mean(self.G_metric_psnr_f.name)
+        self.G_metric_ssim_mean = tf.keras.metrics.Mean(self.G_metric_ssim_f.name)
 
         if metric_ma and metric_niqe:
             self.matlab_engine = MatLabEngine(wd_path=matlab_wd_path, ma=True, niqe=True,
@@ -291,6 +307,9 @@ class EsrganModel(tf.keras.Model):
         if metric_niqe:
             self.G_metric_niqe_f = self.matlab_engine.matlab_niqe_metric
             self.G_metric_niqe_mean = tf.keras.metrics.Mean(name='NIQE')
+        if metric_ma and metric_niqe:
+            self.G_metric_pi_f = perceptual_index
+            self.G_metric_pi_mean = tf.keras.metrics.Mean(name='PI')
 
         super().compile(**kwargs)
 
@@ -358,9 +377,13 @@ class EsrganModel(tf.keras.Model):
 
         # Don't report Ma's SR and NIQE metrics since they is not being evaluated in the training step
         if self.G_metric_ma_f is not None:
+            assert not tf.executing_eagerly()  # Checks that the graph is static
             metrics_to_report.pop('Ma')
         if self.G_metric_niqe_f is not None:
             metrics_to_report.pop('NIQE')
+        if self.G_metric_pi_f is not None:
+            metrics_to_report.pop('PI')
+        assert not tf.executing_eagerly()  # Checks that the graph is static
         return metrics_to_report
 
     def test_step(self, data):
@@ -387,18 +410,30 @@ class EsrganModel(tf.keras.Model):
         G_metric_ssim = self.G_metric_ssim_f(hr, sr)
         self.G_metric_ssim_mean.update_state(G_metric_ssim)
 
+        G_metric_ma, G_metric_niqe = tf.constant(0, dtype=tf.float32), tf.constant(0, dtype=tf.float32)
         if self.G_metric_ma_f is not None:
             G_metric_ma = tf.py_function(self.G_metric_ma_f, [sr], [tf.float32])
             assert not tf.executing_eagerly()  # Checks that the graph is static
             self.G_metric_ma_mean.update_state(G_metric_ma)
+            assert not tf.executing_eagerly()  # Checks that the graph is static
+            print(G_metric_ma)
 
         if self.G_metric_niqe_f is not None:
             G_metric_niqe = tf.py_function(self.G_metric_niqe_f, [sr], [tf.float32])
             assert not tf.executing_eagerly()  # Checks that the graph is static
             self.G_metric_niqe_mean.update_state(G_metric_niqe)
 
+        if self.G_metric_pi_f is not None:
+            G_metric_pi = self.G_metric_pi_f(G_metric_ma, G_metric_niqe)
+            assert not tf.executing_eagerly()  # Checks that the graph is static
+            self.G_metric_pi_mean.update_state(G_metric_pi)
+
         metrics_to_report = {m.name: m.result() for m in self.metrics}
         return metrics_to_report
+
+    # def get_config(self):
+    #     config = super(EsrganModel, self).get_config()
+    #     return config
 
     @property
     def metrics(self):
@@ -425,7 +460,17 @@ class EsrganModel(tf.keras.Model):
             metrics.append(self.G_metric_ma_mean)
         if self.G_metric_niqe_mean is not None:
             metrics.append(self.G_metric_niqe_mean)
+        if self.G_metric_pi_mean is not None:
+            metrics.append(self.G_metric_pi_mean)
         return metrics
+
+    def psnr(self, hr, sr):
+        max_val = self.G_metric_psnr_range
+        return tf.image.psnr(hr, sr, max_val=max_val)
+
+    def ssim(self, hr, sr):
+        max_val = self.G_metric_ssim_range
+        return tf.image.ssim(hr, sr, max_val=max_val)
 
 
 def build_esrgan_model(pretrain_weights_path,
@@ -436,7 +481,7 @@ def build_esrgan_model(pretrain_weights_path,
                        G_loss_percep_before_act=True,
                        G_loss_generator_w=0.005,
                        metric_reg=False, metric_ma=False, metric_niqe=False, matlab_wd_path='modules/matlab',
-                       scale_mean=0, shave_width=4):
+                       scale_mean=0, scaled_range=2.0, shave_width=4):
 
     generator = build_generator(pretrain_or_gan='gan',
                                 n_channels_in=n_channels_in, n_channels_out=n_channels_out,
@@ -461,6 +506,7 @@ def build_esrgan_model(pretrain_weights_path,
 
                               G_loss_generator_w=G_loss_generator_w,
                               metric_reg=metric_reg, metric_ma=metric_ma, metric_niqe=metric_niqe,
-                              matlab_wd_path=matlab_wd_path, scale_mean=scale_mean, shave_width=shave_width)
+                              matlab_wd_path=matlab_wd_path, scale_mean=scale_mean, scaled_range=scaled_range,
+                              shave_width=shave_width)
     gan_model.built = True  # TODO: Do this properly by implementing all abstract classes in EsrganModel
     return gan_model
