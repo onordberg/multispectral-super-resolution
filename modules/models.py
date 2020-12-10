@@ -212,11 +212,11 @@ def build_bicubic_model(upsample_factor, shape_in=(32, 32, 3),
 
 
 class EsrganModel(tf.keras.Model):
-    def __init__(self, generator, discriminator, *args, **kwargs):
-        super().__init__(self, *args, **kwargs)
+    def __init__(self, generator, discriminator, **kwargs):
+        super().__init__(self, **kwargs)
 
-        self.G = generator
         self.D = discriminator
+        self.G = generator
 
         self.G_optimizer, self.D_optimizer = None, None
 
@@ -243,6 +243,14 @@ class EsrganModel(tf.keras.Model):
         self.G_metric_pi_mean = None
 
         self.matlab_engine = None
+
+    def get_config(self):
+        d = {'generator': self.G,
+             'discriminator': self.D}
+        return d
+
+    def call(self, inputs, **kwargs):
+        return self.G(inputs, **kwargs)
 
     def compile(self, **kwargs):
         raise NotImplementedError("Please use special_compile()")
@@ -416,7 +424,6 @@ class EsrganModel(tf.keras.Model):
             assert not tf.executing_eagerly()  # Checks that the graph is static
             self.G_metric_ma_mean.update_state(G_metric_ma)
             assert not tf.executing_eagerly()  # Checks that the graph is static
-            print(G_metric_ma)
 
         if self.G_metric_niqe_f is not None:
             G_metric_niqe = tf.py_function(self.G_metric_niqe_f, [sr], [tf.float32])
@@ -430,10 +437,6 @@ class EsrganModel(tf.keras.Model):
 
         metrics_to_report = {m.name: m.result() for m in self.metrics}
         return metrics_to_report
-
-    # def get_config(self):
-    #     config = super(EsrganModel, self).get_config()
-    #     return config
 
     @property
     def metrics(self):
@@ -463,14 +466,6 @@ class EsrganModel(tf.keras.Model):
         if self.G_metric_pi_mean is not None:
             metrics.append(self.G_metric_pi_mean)
         return metrics
-
-    def psnr(self, hr, sr):
-        max_val = self.G_metric_psnr_range
-        return tf.image.psnr(hr, sr, max_val=max_val)
-
-    def ssim(self, hr, sr):
-        max_val = self.G_metric_ssim_range
-        return tf.image.ssim(hr, sr, max_val=max_val)
 
 
 def build_esrgan_model(pretrain_weights_path,
