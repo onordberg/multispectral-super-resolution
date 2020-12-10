@@ -2,6 +2,7 @@ import numpy as np
 import pathlib
 import tensorflow as tf
 import scipy.io
+import skvideo.measure
 import matlab.engine
 from modules.image_utils import *
 
@@ -109,3 +110,14 @@ class MatLabEngine:
         else:
             ma_scores = list(ma_scores[0])
         return ma_scores
+
+    def skvideo_niqe_metric(self, numpy_imgs):
+        if tf.is_tensor(numpy_imgs):
+            imgs = numpy_imgs.numpy()
+        else:
+            imgs = numpy_imgs.copy()
+        imgs = self.preprocess_imgs(imgs)
+        niqes = skvideo.measure.niqe(imgs)
+
+        self.last_imgs = imgs
+        return niqes
