@@ -57,12 +57,12 @@ The actual thesis is located in a separate private repository https://github.com
     - [X] `Ma et al.`
     - [X] NIQE: There are some indications in discussion threads that the scikit-video implementation is buggy so to be able to trust this implementation a comparison with the matlab implementation is needed. If there are deviations the Matlab implementation seem more trustworthy.
     - [X] PI (a simple average function of Ma and NIQE)
+- [X] Implement all abstract methods of my `Esrgan` model class
 
 ### Work in progress
 - [ ] Create a simple cloud/sea tile classificator. After some preliminary training runs I have identified that it is troublesome that almost 50% of all tiles are sea or clouds only. I think the simplest, cleanest way to counter this is to create a neural net cloud/sea detector and undersample those tiles significantly when generating tiles from the satellite images. I hypothesize that not much labeled data is needed for the classificator to generalize well. Alternatively I could have manually drawn a polygon that include the sea area in the images, but this would also eliminate ships and would not help with clouds.
   - Status: 2500 tiles in various sizes generated and labeled. EfficientNet model trained with data augmentation achieving validation accuracy of approx (0.90, 0.95). Remaining: Integrate in tile generator.
 - [ ] Do a study of how tile sizes affect NIQE and Ma metrics. Hypothesis: Too small tile sizes are not good. This could probably be an appendix in the thesis if it shows something interesting.
-- [ ] Implement all abstract methods of my `Esrgan` model class
 - [ ] Calculate `Ma`, `NIQE` and `PI` on a smaller proportion of the validation set (due to performance reasons)
 
 
