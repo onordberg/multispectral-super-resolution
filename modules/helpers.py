@@ -51,8 +51,14 @@ def count_tiles_in_partition(meta, train_val_test):
 
 
 def subset_by_areas_sensor(meta, areas=None, sensors=None):
-    meta = meta.loc[meta['sensorVehicle'].isin(sensors)]
-    meta = meta.loc[meta['area_name'].isin(areas)]
+    if isinstance(areas, str):
+        areas = [areas]
+    if isinstance(areas, list):
+        meta = meta.loc[meta['area_name'].isin(areas)]
+    if isinstance(sensors, str):
+        sensors = [sensors]
+    if isinstance(sensors, list):
+        meta = meta.loc[meta['sensorVehicle'].isin(sensors)]
     return meta
 
 
