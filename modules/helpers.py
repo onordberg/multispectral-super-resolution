@@ -54,6 +54,10 @@ def count_tiles_in_partition(meta, train_val_test):
     return n_tiles
 
 
+def count_tiles(meta):
+    return sum(meta['n_tiles'])
+
+
 def subset_by_areas_sensor(meta, areas=None, sensors=None):
     if isinstance(areas, str):
         areas = [areas]
