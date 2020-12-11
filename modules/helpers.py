@@ -101,3 +101,10 @@ def save_meta_pickle_csv(meta, dir_path, name, to_pickle=True, to_csv=True):
         meta.to_csv(path)
         print('Saved metadata dataframe as csv at', path)
 
+
+def list_tiles_in_dir(dir_path, ms_or_pan='pan'):
+    if isinstance(dir_path, str):
+        dir_path = pathlib.Path(dir_path)
+    list_of_tiles = list(dir_path.glob('**/*'+str(ms_or_pan)+'/*.tif'))
+    print('Found', len(list_of_tiles), 'tiles of type', ms_or_pan, 'in the directory provided')
+    return list(dir_path.glob('**/*'+str(ms_or_pan)+'/*.tif'))
