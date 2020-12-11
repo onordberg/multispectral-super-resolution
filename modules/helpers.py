@@ -42,6 +42,10 @@ def count_images_in_partition(meta, train_val_test):
     return n_images
 
 
+def count_images(meta):
+    return len(meta.index)
+
+
 def count_tiles_in_partition(meta, train_val_test):
     try:
         n_tiles = sum(meta.loc[meta['train_val_test'] == train_val_test, 'n_tiles'])
@@ -92,3 +96,4 @@ def save_meta_pickle_csv(meta, dir_path, name, to_pickle=True, to_csv=True):
             path = path.with_suffix('.csv')
         meta.to_csv(path)
         print('Saved metadata dataframe as csv at', path)
+
