@@ -62,7 +62,7 @@ class MatLabEngine:
         return matlab_engine
 
     def preprocess_imgs(self, numpy_imgs):
-        if numpy_imgs.dtype == self.output_dtype:  # uint8 or uint16
+        if numpy_imgs.dtype == self.output_dtype:  # uint8 or uint16 -> Do nothing
             pass
         elif numpy_imgs.dtype == 'float32' and self.output_dtype == 'uint16':
             assert abs(self.input_range[0]) == abs(self.input_range[1])
