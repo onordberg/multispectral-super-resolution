@@ -108,3 +108,20 @@ def list_tiles_in_dir(dir_path, ms_or_pan='pan'):
     list_of_tiles = list(dir_path.glob('**/*'+str(ms_or_pan)+'/*.tif'))
     print('Found', len(list_of_tiles), 'tiles of type', ms_or_pan, 'in the directory provided')
     return list(dir_path.glob('**/*'+str(ms_or_pan)+'/*.tif'))
+
+
+def get_sensor_band_config(sensor, meta=None, meta_dir='.', meta_filename='metadata_df'):
+    if sensor not in ['WV02', 'GE01', 'WV03_VNIR']:
+        raise NotImplementedError
+    if meta is None:
+        meta = load_meta_pickle_csv(pathlib.Path(meta_dir), meta_filename, from_pickle=True)
+
+    bands_raw = list(meta.loc[meta['sensorVehicle'] == sensor, ['ms_band0', 'ms_band1',
+                                                            'ms_band2', 'ms_band3',
+                                                            'ms_band4', 'ms_band5',
+                                                            'ms_band6', 'ms_band7']].iloc[0])
+    bands = []
+    for band in bands_raw:
+        if isinstance(band, str):
+            bands.append(band)
+    return bands
