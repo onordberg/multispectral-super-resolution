@@ -266,14 +266,31 @@ def ms_to_rgb_batch(ms_batch, sensor='WV02'):
     return batch_out
 
 
-def geotiff_to_ndarray(tif_path):
-    if isinstance(tif_path, str):
-        tif_path = pathlib.Path(tif_path)
-
-    with rasterio.open(tif_path) as src:
-        img = src.read()
-        img = rasterio.plot.reshape_as_image(img)  # from channels first to channels last
-        return img
+def geotiff_to_ndarray(tif_paths):
+    if isinstance(tif_paths, pathlib.Path):
+        tif_paths = [tif_paths]
+    if isinstance(tif_paths, str):
+        tif_paths = [pathlib.Path(tif_paths)]
+    if isinstance(tif_paths, list):
+        pass  # TODO: Assert that list contains either strings or pathlib.Path objects
+    else:
+        raise NotImplementedError('tif_paths argument must either be str, pathlib.Path or a list of either')
+    n = len(tif_paths)
+    imgs = None
+    for i, tif_path in enumerate(tif_paths):
+        if isinstance(tif_path, str):
+            tif_path = pathlib.Path(tif_path)
+        with rasterio.open(tif_path) as src:
+            img = src.read()
+            img = rasterio.plot.reshape_as_image(img)  # from channels first to channels last
+            if n > 1:
+                if i == 0:
+                    imgs = np.empty((n, img.shape[0], img.shape[1], img.shape[2]))
+                assert imgs.shape[1:] == img.shape
+                imgs[i] = img
+            else:
+                imgs = img
+    return imgs
 
 
 def ndarray_to_png(arr, png_path, scale=True):
