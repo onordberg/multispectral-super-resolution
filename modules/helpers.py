@@ -1,7 +1,6 @@
 import pandas as pd
 import pickle
 import pathlib
-import numpy as np
 
 
 def get_int_uid(meta, string_UIDs):
@@ -114,8 +113,13 @@ def list_tiles_in_dir(dir_path, ms_or_pan='pan'):
 def get_sensor_bands(sensor, meta=None, meta_dir='.', meta_filename='metadata_df'):
     if sensor not in ['WV02', 'GE01', 'WV03_VNIR']:
         raise NotImplementedError('Sensor argument must be "WV02", "GE01" or "WV03_VNIR"')
+
     if meta is None:
         meta = load_meta_pickle_csv(pathlib.Path(meta_dir), meta_filename, from_pickle=True)
+    elif isinstance(meta, pd.DataFrame):
+        pass
+    else:
+        raise ValueError('Meta argument must either be a pandas dataframe or None')
 
     bands_raw = list(meta.loc[meta['sensorVehicle'] == sensor, ['ms_band0', 'ms_band1',
                                                                 'ms_band2', 'ms_band3',
@@ -139,4 +143,3 @@ def get_sensor_band_indices(band_names, sensor, meta=None, meta_dir='.', meta_fi
         raise KeyError('Band name ' + str(ke) +
                        ' provided in band_names not found in the band configuration of sensor ' + sensor)
     return sensor_band_indices
-
