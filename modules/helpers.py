@@ -1,6 +1,7 @@
 import pandas as pd
 import pickle
 import pathlib
+import numpy as np
 
 
 def get_int_uid(meta, string_UIDs):
@@ -110,18 +111,32 @@ def list_tiles_in_dir(dir_path, ms_or_pan='pan'):
     return list(dir_path.glob('**/*'+str(ms_or_pan)+'/*.tif'))
 
 
-def get_sensor_band_config(sensor, meta=None, meta_dir='.', meta_filename='metadata_df'):
+def get_sensor_bands(sensor, meta=None, meta_dir='.', meta_filename='metadata_df'):
     if sensor not in ['WV02', 'GE01', 'WV03_VNIR']:
-        raise NotImplementedError
+        raise NotImplementedError('Sensor argument must be "WV02", "GE01" or "WV03_VNIR"')
     if meta is None:
         meta = load_meta_pickle_csv(pathlib.Path(meta_dir), meta_filename, from_pickle=True)
 
     bands_raw = list(meta.loc[meta['sensorVehicle'] == sensor, ['ms_band0', 'ms_band1',
-                                                            'ms_band2', 'ms_band3',
-                                                            'ms_band4', 'ms_band5',
-                                                            'ms_band6', 'ms_band7']].iloc[0])
-    bands = []
-    for band in bands_raw:
-        if isinstance(band, str):
-            bands.append(band)
+                                                                'ms_band2', 'ms_band3',
+                                                                'ms_band4', 'ms_band5',
+                                                                'ms_band6', 'ms_band7']].iloc[0])
+    bands = {}
+    for i, band in enumerate(bands_raw):
+        if not isinstance(band, str):  # Handling nan values for the last k bands if sensor has less than 8
+            break
+        bands[band] = i
     return bands
+
+
+def get_sensor_band_indices(band_names, sensor, meta=None, meta_dir='.', meta_filename='metadata_df'):
+    if isinstance(band_names, str):
+        band_names = [band_names]  # Handle if band_names is string not list
+    sensor_bands = get_sensor_bands(sensor, meta=meta, meta_dir=meta_dir, meta_filename=meta_filename)
+    try:
+        sensor_band_indices = [sensor_bands[band_name] for band_name in band_names]
+    except KeyError as ke:
+        raise KeyError('Band name ' + str(ke) +
+                       ' provided in band_names not found in the band configuration of sensor ' + sensor)
+    return sensor_band_indices
+

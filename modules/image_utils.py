@@ -7,6 +7,8 @@ import rasterio
 import rasterio.plot
 import tensorflow as tf
 
+from modules.helpers import *
+
 
 def get_max_uint_from_bit_depth(bit_depth):
     return 2 ** bit_depth - 1
@@ -313,6 +315,20 @@ def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, stretch=True, sensor='
         img = stretch_img(img, individual_bands=True)
 
     ndarray_to_png(img, png_path, scale=scale)
+
+
+def sensor_a_imitate_sensor_b(imgs_sensor_a, sensor_a_name='WV02', sensor_b_name='GE01', meta=None):
+
+    # Get a dictionary of band configuration from sensor_b of type {band_name: i} ex. {'Coastal': 0}
+    band_config_b = get_sensor_bands(sensor_b_name, meta=meta)
+
+    # Send the keys (band names) of sensor_b to a function that retrieves the indices of the same keys
+    # from sensor_a
+    band_indices_a = get_sensor_band_indices(band_names=band_config_b.keys(), sensor=sensor_a_name, meta=meta)
+
+    # Slice out the indices in question (in the sequence provided)
+    imgs = np.take(imgs_sensor_a, band_indices_a, -1)
+    return imgs
 
 
 def plot_subplot(ax, img, title, gray=False):
