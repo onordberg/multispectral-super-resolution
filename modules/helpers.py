@@ -134,16 +134,16 @@ def get_sensor_bands(sensor, meta=None, meta_dir='.', meta_filename='metadata_df
     return bands
 
 
-def get_sensor_band_indices(band_names, sensor, meta=None, meta_dir='.', meta_filename='metadata_df'):
-    if isinstance(band_names, str):
-        band_names = [band_names]  # Handle if band_names is string not list
-    sensor_bands = get_sensor_bands(sensor, meta=meta, meta_dir=meta_dir, meta_filename=meta_filename)
-    try:
-        sensor_band_indices = [sensor_bands[band_name] for band_name in band_names]
-    except KeyError as ke:
-        raise KeyError('Band name ' + str(ke) +
-                       ' provided in band_names not found in the band configuration of sensor ' + sensor)
-    return sensor_band_indices
+# def get_sensor_band_indices(band_names, sensor, meta=None, meta_dir='.', meta_filename='metadata_df'):
+#     if isinstance(band_names, str):
+#         band_names = [band_names]  # Handle if band_names is string not list
+#     sensor_bands = get_sensor_bands(sensor, meta=meta, meta_dir=meta_dir, meta_filename=meta_filename)
+#     try:
+#         sensor_band_indices = [sensor_bands[band_name] for band_name in band_names]
+#     except KeyError as ke:
+#         raise KeyError('Band name ' + str(ke) +
+#                        ' provided in band_names not found in the band configuration of sensor ' + sensor)
+#     return sensor_band_indices
 
 
 def sensor_a_imitate_sensor_b(sensor_a_name='WV02', sensor_b_name='GE01', meta=None):
