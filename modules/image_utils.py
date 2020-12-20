@@ -285,11 +285,17 @@ def geotiff_to_ndarray(tif_paths):
         with rasterio.open(tif_path) as src:
             img = src.read()
             img = rasterio.plot.reshape_as_image(img)  # from channels first to channels last
+
+            # In the case of a batch of tif images (list of tif paths)
             if n > 1:
+                # Create an empty batch ndarray on the first iteration
                 if i == 0:
-                    imgs = np.empty((n, img.shape[0], img.shape[1], img.shape[2]))
+                    imgs = np.empty((n, img.shape[0], img.shape[1], img.shape[2]), dtype='uint16')
+
+                # And from then on paste ndarray images into the batch ndarray
                 assert imgs.shape[1:] == img.shape
                 imgs[i] = img
+            # If only a single tif then the batch ndarray is dropped and output shape == image shape
             else:
                 imgs = img
     return imgs
@@ -317,18 +323,9 @@ def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, stretch=True, sensor='
     ndarray_to_png(img, png_path, scale=scale)
 
 
-def sensor_a_imitate_sensor_b(imgs_sensor_a, sensor_a_name='WV02', sensor_b_name='GE01', meta=None):
-
-    # Get a dictionary of band configuration from sensor_b of type {band_name: i} ex. {'Coastal': 0}
-    band_config_b = get_sensor_bands(sensor_b_name, meta=meta)
-
-    # Send the keys (band names) of sensor_b to a function that retrieves the indices of the same keys
-    # from sensor_a
-    band_indices_a = get_sensor_band_indices(band_names=band_config_b.keys(), sensor=sensor_a_name, meta=meta)
-
+def select_bands(imgs, band_indices):
     # Slice out the indices in question (in the sequence provided)
-    imgs = np.take(imgs_sensor_a, band_indices_a, -1)
-    return imgs
+    return np.take(imgs, band_indices, -1)
 
 
 def plot_subplot(ax, img, title, gray=False):

@@ -1,6 +1,7 @@
 import pandas as pd
 import pickle
 import pathlib
+import numpy as np
 
 
 def get_int_uid(meta, string_UIDs):
@@ -143,3 +144,13 @@ def get_sensor_band_indices(band_names, sensor, meta=None, meta_dir='.', meta_fi
         raise KeyError('Band name ' + str(ke) +
                        ' provided in band_names not found in the band configuration of sensor ' + sensor)
     return sensor_band_indices
+
+
+def sensor_a_imitate_sensor_b(sensor_a_name='WV02', sensor_b_name='GE01', meta=None):
+    # Get a dictionary of band configuration from sensor_b of type {band_name: i} ex. {'Coastal': 0}
+    # Not interested in the dict, only the keys (band names). This list will be sorted by band index of sensor_b
+    band_names_b = get_sensor_bands(sensor_b_name, meta=meta).keys()
+
+    # Send the keys (band names) of sensor_b to a function that retrieves the indices of the same keys from sensor_a
+    band_indices_a = get_sensor_band_indices(band_names=band_names_b, sensor=sensor_a_name, meta=meta)
+    return band_indices_a
