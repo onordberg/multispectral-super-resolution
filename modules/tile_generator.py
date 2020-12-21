@@ -15,17 +15,17 @@ def resize_sat_img(src, rescale_factor=(1.0, 1.0), resampling='nearest'):
     height = int(src.height * rescale_factor[0])
     width = int(src.width * rescale_factor[1])
     count = src.count
-    
+
     if resampling == 'nearest':
         resampling = rasterio.enums.Resampling.nearest
     elif resampling == 'bicubic':
         resampling = rasterio.enums.Resampling.cubic
     elif resampling == 'bilinear':
-        resampling = rasterio.enums.Resampling.bilinear 
-        
+        resampling = rasterio.enums.Resampling.bilinear
+
     img = src.read(out_shape=(count, height, width),
                    resampling=resampling)
-                   
+
     t = src.transform
 
     # rescale the metadata 
@@ -44,30 +44,30 @@ def resize_sat_img_to_new_pixel_size(row, save_dir, new_pixel_size_pan=(1.0, 1.0
     ms_dir.mkdir(exist_ok=True)
     pan_dir = pathlib.Path(image_dir, 'pan')
     pan_dir.mkdir(exist_ok=True)
-    
+
     # For resizing of image to new pixel size only the pan pixel size is used directly,
     # while the new ms pixel size is calculated from pan and the sr_factor.
     # This is done to avoid rounding errors and prioritize sr_factor to be exact
     old_pan_pixel_size = (row['pan_pixelHeight'], row['pan_pixelWidth'])
     old_ms_pixel_size = (row['ms_pixelHeight'], row['ms_pixelWidth'])
     # assert pan_pixel_size[0] == pan_pixel_size[1]
-    pan_resize_factor = (old_pan_pixel_size[0]/new_pixel_size_pan[0], 
-                         old_pan_pixel_size[1]/new_pixel_size_pan[1])
+    pan_resize_factor = (old_pan_pixel_size[0] / new_pixel_size_pan[0],
+                         old_pan_pixel_size[1] / new_pixel_size_pan[1])
     # print(pan_resize_factor)
-    ms_resize_factor = (old_ms_pixel_size[0] / (sr_factor*new_pixel_size_pan[0]), 
-                        old_ms_pixel_size[1] / (sr_factor*new_pixel_size_pan[1]))
+    ms_resize_factor = (old_ms_pixel_size[0] / (sr_factor * new_pixel_size_pan[0]),
+                        old_ms_pixel_size[1] / (sr_factor * new_pixel_size_pan[1]))
     # print(old_ms_pixel_size[0]/old_pan_pixel_size[0])
     # print(old_ms_pixel_size[0]*ms_resize_factor[0]/(old_pan_pixel_size[0]*pan_resize_factor[0]))
-    
+
     with rasterio.open(row['ms_tif_path'], 'r') as ms_src, rasterio.open(row['pan_tif_path'], 'r') as pan_src:
-        print('Dimensions before resize', (ms_src.count, ms_src.shape[0], ms_src.shape[1]), 
+        print('Dimensions before resize', (ms_src.count, ms_src.shape[0], ms_src.shape[1]),
               (pan_src.count, pan_src.shape[0], pan_src.shape[1]))
         print('Resize by factors (height, width):')
         print('pan', pan_resize_factor, ', ms:', ms_resize_factor)
-        ms_img, ms_transform = resize_sat_img(ms_src, 
+        ms_img, ms_transform = resize_sat_img(ms_src,
                                               rescale_factor=ms_resize_factor,
                                               resampling=resampling)
-        pan_img, pan_transform = resize_sat_img(pan_src, 
+        pan_img, pan_transform = resize_sat_img(pan_src,
                                                 rescale_factor=pan_resize_factor,
                                                 resampling=resampling)
         print('Dimensions after resize', ms_img.shape, pan_img.shape)
@@ -94,14 +94,14 @@ def resize_sat_img_to_new_pixel_size(row, save_dir, new_pixel_size_pan=(1.0, 1.0
                 transform=pan_transform) as pan_dst:
             pan_dst.write(pan_img)
     print()
-    
+
     # Update paths to the new resized versions
     row['ms_tif_path'] = ms_path.absolute()
     row['pan_tif_path'] = pan_path.absolute()
     return row
 
 
-def resize_all_sat_imgs_to_new_pixel_size(meta, save_dir, new_pixel_size_pan=(1.0,1.0), 
+def resize_all_sat_imgs_to_new_pixel_size(meta, save_dir, new_pixel_size_pan=(1.0, 1.0),
                                           sr_factor=4, resampling='nearest'):
     meta.apply(resize_sat_img_to_new_pixel_size, axis=1,
                save_dir=save_dir,
@@ -109,8 +109,44 @@ def resize_all_sat_imgs_to_new_pixel_size(meta, save_dir, new_pixel_size_pan=(1.
                sr_factor=sr_factor, resampling=resampling)
 
 
-def allocate_tiles(meta, by_partition=True, n_tiles_train=0, n_tiles_val=0, n_tiles_test=0, n_tiles_total=None,
-                   new_column_name='n_tiles'):
+def allocate_tiles_by_expected(meta, pan_tile_size=128, tiles_per_m2=1.0, override_pan_pixel_size=False,
+                               by_partition=False, train_val_test_tiles_per_m2=(1.0, 1.0, 1.0),
+                               new_column_name='n_tiles'):
+    counts_df = pd.DataFrame(index=meta.index)
+    counts_df[new_column_name] = 0
+
+    if not override_pan_pixel_size:
+        # Check that all pixel sizes are square. Anything else is very unusual in UTM sat images.
+        pd.testing.assert_series_equal(meta['pan_pixelHeight'], meta['pan_pixelWidth'], check_names=False)
+        # Since all are square the following simplification is OK
+        counts_df['pan_pixel_size'] = meta.loc[:, 'pan_pixelHeight']
+    else:
+        if not isinstance(override_pan_pixel_size, float):
+            raise ValueError('override_pan_pixel_size must either be False or a float, not VALUE:'
+                             + str(override_pan_pixel_size) + ' TYPE: ' + str(type(override_pan_pixel_size)))
+        if override_pan_pixel_size < 0.0:
+            raise ValueError('override_pan_pixel_size must be positive')
+        counts_df['pan_pixel_size'] = override_pan_pixel_size
+
+    if by_partition:
+        counts_df['train_val_test'] = meta.loc[:, 'train_val_test']
+        for i, p in enumerate(['train', 'val', 'test']):
+            meta_p = meta.loc[meta['train_val_test'] == p, :]
+            counts_df_p = counts_df.loc[counts_df['train_val_test'] == p, :].copy()
+            counts_df_p[new_column_name] = ((train_val_test_tiles_per_m2[i] * meta_p['area_m2'])
+                                            / (counts_df['pan_pixel_size'] ** 2 * pan_tile_size ** 2))
+            counts_df.update(counts_df_p)
+
+    else:
+        counts_df[new_column_name] = ((tiles_per_m2 * meta['area_m2'])
+                                      / (counts_df['pan_pixel_size'] ** 2 * pan_tile_size ** 2))
+
+    meta[new_column_name] = counts_df[new_column_name].astype(int)
+    return meta
+
+
+def allocate_tiles_by_fixed_n_tiles(meta, by_partition=True, n_tiles_train=0, n_tiles_val=0, n_tiles_test=0,
+                                    n_tiles_total=None, new_column_name='n_tiles'):
     # n_tiles_total only to be used when by_partition=False
     counts_df = pd.DataFrame(index=meta.index)
     counts_df[new_column_name] = 0
@@ -131,7 +167,7 @@ def allocate_tiles(meta, by_partition=True, n_tiles_train=0, n_tiles_val=0, n_ti
                 n_tiles = n_tiles_test
             else:
                 continue  # If n_tiles_part is 0
-            
+
             # list of image names (index names) that will be allocated
             image_names = list(meta[meta['train_val_test'] == p]['area_ratio'].index)
             # list of weights based on the area_ratio of an image
@@ -140,16 +176,16 @@ def allocate_tiles(meta, by_partition=True, n_tiles_train=0, n_tiles_val=0, n_ti
 
             # the actual sampling
             sampling = random.choices(image_names, weights=image_area_weights, k=n_tiles)
-            
+
             # collecting the samples in a dataframe and updating for every partition
-            counts = pd.DataFrame.from_dict(dict(Counter(sampling)), 
+            counts = pd.DataFrame.from_dict(dict(Counter(sampling)),
                                             orient='index',
                                             columns=[new_column_name])
             print('Allocated', int(sum(counts[new_column_name])), 'tiles across the',
                   meta['train_val_test'].value_counts()[p],
                   'images in the', p, 'partition.')
             counts_df.update(counts)
-    
+
     # when allocating without partition it is straight-forward
     else:
         image_names = list(meta['area_ratio'].index)
@@ -160,7 +196,7 @@ def allocate_tiles(meta, by_partition=True, n_tiles_train=0, n_tiles_val=0, n_ti
                                         columns=[new_column_name])
         counts_df.update(counts)
         print('Allocated', int(sum(counts_df[new_column_name])), 'tiles across the', count_images(meta), 'images')
-    
+
     # "merge" tile counts dataframe with main metadata dataframe
     meta[new_column_name] = counts_df
     meta[new_column_name] = meta[new_column_name].astype('int32')
@@ -186,18 +222,18 @@ def get_random_box(img_shape, crop_size):
         A list defining the window:
         [upper_left_y, upper_left_x, height, width, channels]
     """
-    
+
     # print('img_shape', img_shape)
     maxval_y, maxval_x, channels = img_shape
-    
+
     # Ensure that window does not go beyond image dimensions
     maxval_y -= crop_size[0]
     maxval_x -= crop_size[1]
-    
+
     # Random sampling
     rng = np.random.default_rng()
     upper_left_yx = rng.integers(0, high=[maxval_y, maxval_x], dtype='int32')
-    
+
     # Concatenating results
     box = [upper_left_yx[0], upper_left_yx[1], crop_size[0], crop_size[1], channels]
     return box
@@ -224,7 +260,7 @@ def is_img_all_cloud_or_sea(img, model, pred_cutoff=0.9):
     return NotImplementedError
 
 
-def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, save_by_partition=True,
+def generate_tiles(row, save_dir, ms_height_width=(32, 32), sr_factor=4, save_by_partition=True,
                    cloud_sea_removal=False, cloud_sea_model=None, cloud_sea_pred_cutoff=0.90,
                    print_tile_info=False):
     if isinstance(save_dir, str):
@@ -244,7 +280,7 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, save_by_
     ms_dir.mkdir(exist_ok=True)
     pan_dir = pathlib.Path(image_dir, 'pan')
     pan_dir.mkdir(exist_ok=True)
-    
+
     discard_count_border_pixel = 0
     discard_count_cloud_sea = 0
 
@@ -252,7 +288,7 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, save_by_
         raise NotImplementedError
 
     with rasterio.open(row['ms_tif_path'], 'r') as ms_src, rasterio.open(row['pan_tif_path'], 'r') as pan_src:
-        print('Shapes', (ms_src.count, ms_src.shape[0], ms_src.shape[1]), 
+        print('Shapes', (ms_src.count, ms_src.shape[0], ms_src.shape[1]),
               (pan_src.count, pan_src.shape[0], pan_src.shape[1]))
 
         for i in range(row['n_tiles']):
@@ -264,26 +300,26 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, save_by_
                 ms_win = rasterio.windows.Window(ms_box[1], ms_box[0], ms_box[3], ms_box[2])
                 ms_tile = ms_src.read(window=ms_win)
                 ms_win_transform = ms_src.window_transform(ms_win)
-                
+
                 pan_box = get_hr_box(ms_box, sr_factor, pan_src.count)
 
                 pan_win = rasterio.windows.Window(pan_box[1], pan_box[0], pan_box[3], pan_box[2])
                 pan_tile = pan_src.read(window=pan_win)
                 pan_win_transform = pan_src.window_transform(pan_win)
-                
+
                 # CLOUD/SEA DETECTOR. TODO: REPLACE WITH PROPER DETECTOR
                 if cloud_sea_removal:
                     img_is_all_cloud_or_sea = is_img_all_cloud_or_sea(pan_tile, cloud_sea_model,
                                                                       pred_cutoff=cloud_sea_pred_cutoff)
                 if is_border_pixel_in_image(ms_tile):
                     if print_tile_info:
-                        print('Border area detected in ms tile', i, 
+                        print('Border area detected in ms tile', i,
                               'from image', image_string_UID)
                         print('Discarding current tile and resampling new tile')
                     discard_count_border_pixel += 1
                 elif is_border_pixel_in_image(pan_tile):
                     if print_tile_info:
-                        print('Border area detected in pan tile', i, 
+                        print('Border area detected in pan tile', i,
                               'from image', image_string_UID)
                         print('Discarding current tile and resampling new tile')
                     discard_count_border_pixel += 1
@@ -298,7 +334,7 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, save_by_
                 #     discard_count_cloud_sea += 1
                 else:
                     break
-    
+
             with rasterio.open(
                     pathlib.Path(ms_dir, str(str(i).zfill(5) + '.tif')),
                     'w',
@@ -310,7 +346,7 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, save_by_
                     crs=ms_src.crs,
                     transform=ms_win_transform) as ms_dst:
                 ms_dst.write(ms_tile)
-                
+
             with rasterio.open(
                     pathlib.Path(pan_dir, str(str(i).zfill(5) + '.tif')),
                     'w',
@@ -329,7 +365,7 @@ def generate_tiles(row, save_dir, ms_height_width=(32,32), sr_factor=4, save_by_
     print()
 
 
-def generate_all_tiles(meta, save_dir, ms_height_width=(32,32), sr_factor=4, save_by_partition=True,
+def generate_all_tiles(meta, save_dir, ms_height_width=(32, 32), sr_factor=4, save_by_partition=True,
                        cloud_sea_removal=True, cloud_sea_weights_path=None, cloud_sea_pred_cutoff=0.90,
                        print_tile_info=False, save_meta_to_disk=True):
     cloud_sea_model = None
@@ -350,7 +386,7 @@ def generate_all_tiles(meta, save_dir, ms_height_width=(32,32), sr_factor=4, sav
     else:
         n_tiles = count_tiles(meta)
         print('Generating', n_tiles, 'without separating by train/val/test partition.')
-    meta.apply(generate_tiles, axis=1, save_dir=save_dir, 
+    meta.apply(generate_tiles, axis=1, save_dir=save_dir,
                ms_height_width=ms_height_width, sr_factor=sr_factor, save_by_partition=save_by_partition,
                cloud_sea_removal=cloud_sea_removal, cloud_sea_model=cloud_sea_model,
                cloud_sea_pred_cutoff=cloud_sea_pred_cutoff,

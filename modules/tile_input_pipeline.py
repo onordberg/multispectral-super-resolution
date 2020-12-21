@@ -14,6 +14,7 @@ def wv02_imitate_ge01(img):
     img = np.take(img, IMITATION_BANDS, -1)
     return img
 
+
 def decode_geotiff(image_path):
     image_path = pathlib.Path(image_path.numpy().decode())
     with rasterio.open(image_path) as src:
@@ -27,6 +28,7 @@ def decode_geotiff(image_path):
     img = input_scaler(img, radius=1.0, output_dtype=np.float32, uint_bit_depth=11, 
                        mean_correction=True, mean=mean_of_train_tiles)
     return img
+
 
 def process_path(ms_tile_path):
     img_string_UID = tf.strings.split(ms_tile_path, os.sep)[-3]
