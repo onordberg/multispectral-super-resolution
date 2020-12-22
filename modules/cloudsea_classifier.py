@@ -2,9 +2,26 @@ from modules.image_utils import *
 from modules.helpers import *
 
 
+def load_and_populate_label_df(label_df_path, meta):
+    # Reading the labels from csv
+    label_df = pd.read_csv(pathlib.Path(label_df_path), delimiter=';', )
+
+    # Extract information from the tile_uids
+    tile_int_uids = [int(tile_uid.split('-')[0]) for tile_uid in label_df['tile_uid'].to_list()]
+    tile_size = [int(tile_uid.split('-')[1]) for tile_uid in label_df['tile_uid'].to_list()]
+    tile_string_uids = get_string_uid(meta, tile_int_uids)
+    tile_sensors = get_sensor(meta, tile_string_uids)
+
+    # Add the extracted information as columns
+    label_df['sensor'] = tile_sensors
+    label_df['tile_size'] = tile_size
+    label_df['img_uid'] = tile_string_uids
+    return label_df
+
+
 def prepare_for_training(label_df, tif_paths_pan, tif_paths_ms,
                          pan_or_ms_or_both='pan',
-                         pan_tile_size=128, ms_tile_size=32):
+                         pan_tile_size=128, ms_tile_size=32, resize_method='bilinear'):
     # Assert that uids match up (that the order has not been mixed up etc.)
     assert_x_y_match(tif_paths_pan=tif_paths_pan, tif_paths_ms=tif_paths_ms, label_df=label_df)
 
@@ -44,20 +61,20 @@ def prepare_for_training(label_df, tif_paths_pan, tif_paths_ms,
         if pan_or_ms_or_both == 'pan':
             img = geotiff_to_ndarray(tif_paths_pan[i])
             img = tf.image.resize(img, [tile_size, tile_size],
-                                  method=tf.image.ResizeMethod.BILINEAR).numpy()
+                                  method=resize_method).numpy()
         elif pan_or_ms_or_both == 'ms':
             img = geotiff_to_ndarray(tif_paths_ms[i])
             img = select_bands(img, band_indices)
             img = tf.image.resize(img, [tile_size, tile_size],
-                                  method=tf.image.ResizeMethod.BILINEAR).numpy()
+                                  method=resize_method).numpy()
         elif pan_or_ms_or_both == 'both':
             img_ms = geotiff_to_ndarray(tif_paths_ms[i])
             img_ms = select_bands(img_ms, band_indices)
             img_ms = tf.image.resize(img_ms, [tile_size, tile_size],
-                                     method=tf.image.ResizeMethod.BILINEAR).numpy()
+                                     method=resize_method).numpy()
             img_pan = geotiff_to_ndarray(tif_paths_pan[i])
             img_pan = tf.image.resize(img_pan, [tile_size, tile_size],
-                                      method=tf.image.ResizeMethod.BILINEAR).numpy()
+                                      method=resize_method).numpy()
             img = np.concatenate((img_pan, img_ms), axis=-1)
         else:
             raise ValueError('Argument pan_or_ms_or_both must be either "pan", "ms" or "both", not', pan_or_ms_or_both)
@@ -98,8 +115,7 @@ def build_augmentation_model():
     img_augmentation = tf.keras.Sequential(
         [
             tf.keras.layers.experimental.preprocessing.RandomRotation(factor=1.0),
-            tf.keras.layers.experimental.preprocessing.RandomTranslation(
-                height_factor=0.1, width_factor=0.1),
+            tf.keras.layers.experimental.preprocessing.RandomTranslation(height_factor=0.1, width_factor=0.1),
             tf.keras.layers.experimental.preprocessing.RandomFlip(),
             tf.keras.layers.experimental.preprocessing.RandomContrast(factor=0.1),
         ],
@@ -108,7 +124,7 @@ def build_augmentation_model():
     return img_augmentation
 
 
-def build_model(augment=True, input_shape=(224, 224, 1)):
+def build_model(augment=True, input_shape=(224, 224, 1), learning_rate=0.001):
     inputs = tf.keras.layers.Input(shape=input_shape)
 
     if augment:
@@ -122,7 +138,7 @@ def build_model(augment=True, input_shape=(224, 224, 1)):
 
     model = tf.keras.Model(inputs, model.output, name="EfficientNetB0")
 
-    optimizer = tf.keras.optimizers.Adam()
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
     model.compile(optimizer, loss='binary_crossentropy', metrics='accuracy')
 
     return model
