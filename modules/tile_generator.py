@@ -261,16 +261,30 @@ def is_img_all_cloud_or_sea(img, model, pred_cutoff=0.9):
     return NotImplementedError
 
 
-def generate_tiles(row, save_dir, ms_height_width=(32, 32), sr_factor=4, save_by_partition=True,
-                   cloud_sea_removal=False, cloud_sea_model=None, cloud_sea_pred_cutoff=0.90,
-                   print_tile_info=False):
+def generate_tiles(row,
+                   save_dir,
+                   ms_tile_size=32,
+                   sr_factor=4,
+                   by_partition=True,
+                   ms_tile_size_train_val_test=(32, 32, 32),
+                   cloud_sea_removal=False, cloud_sea_model=None, cloud_sea_pred_cutoff=0.90):
     if isinstance(save_dir, str):
         save_dir = pathlib.Path(save_dir)
 
     image_string_UID = get_string_uid(row, row['int_uid'])
-    if save_by_partition:
+    if by_partition:
         save_dir = pathlib.Path(save_dir, row['train_val_test'])
-        print(row['train_val_test'], 'set -', 'From image', image_string_UID, '- Generating', row['n_tiles'], 'tiles')
+        partition = row['train_val_test']
+        if partition == 'train':
+            ms_tile_size = ms_tile_size_train_val_test[0]
+        elif partition == 'val':
+            ms_tile_size = ms_tile_size_train_val_test[1]
+        elif partition == 'test':
+            ms_tile_size = ms_tile_size_train_val_test[2]
+        else:
+            raise ValueError(
+                'Partition string in metadata dataframe is neither "train", "val" or "test". Value:', partition)
+        print(partition, 'set -', 'From image', image_string_UID, '- Generating', row['n_tiles'], 'tiles')
     else:
         print('From image', image_string_UID, '- Generating', row['n_tiles'], 'tiles')
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -295,7 +309,7 @@ def generate_tiles(row, save_dir, ms_height_width=(32, 32), sr_factor=4, save_by
         for i in range(row['n_tiles']):
             while True:
                 ms_shape = [ms_src.shape[0], ms_src.shape[1], ms_src.count]
-                ms_box = np.array(get_random_box(ms_shape, ms_height_width))
+                ms_box = np.array(get_random_box(ms_shape, (ms_tile_size, ms_tile_size)))  # square tile h == w
 
                 # Box list on the form [upper_left_y, upper_left_x, height, width, channels]
                 ms_win = rasterio.windows.Window(ms_box[1], ms_box[0], ms_box[3], ms_box[2])
@@ -313,25 +327,12 @@ def generate_tiles(row, save_dir, ms_height_width=(32, 32), sr_factor=4, save_by
                     img_is_all_cloud_or_sea = is_img_all_cloud_or_sea(pan_tile, cloud_sea_model,
                                                                       pred_cutoff=cloud_sea_pred_cutoff)
                 if is_border_pixel_in_image(ms_tile):
-                    if print_tile_info:
-                        print('Border area detected in ms tile', i,
-                              'from image', image_string_UID)
-                        print('Discarding current tile and resampling new tile')
                     discard_count_border_pixel += 1
                 elif is_border_pixel_in_image(pan_tile):
-                    if print_tile_info:
-                        print('Border area detected in pan tile', i,
-                              'from image', image_string_UID)
-                        print('Discarding current tile and resampling new tile')
                     discard_count_border_pixel += 1
                 # CLOUD/SEA TILE REMOVAL
                 elif cloud_sea_removal and img_is_all_cloud_or_sea:
                     raise NotImplementedError
-                #     if print_tile_info:
-                #         print('Tile', i, 'from image', image_string_UID,
-                #               'is probably only sea or clouds')
-                #         print('ms cloud? ', is_ms_cloud_or_sea, ', pan cloud?', is_pan_cloud_or_sea)
-                #         print('Discarding current tile and resampling new tile')
                 #     discard_count_cloud_sea += 1
                 else:
                     break
@@ -366,9 +367,13 @@ def generate_tiles(row, save_dir, ms_height_width=(32, 32), sr_factor=4, save_by
     print()
 
 
-def generate_all_tiles(meta, save_dir, ms_height_width=(32, 32), sr_factor=4, save_by_partition=True,
+def generate_all_tiles(meta, save_dir,
+                       ms_tile_size=32,
+                       sr_factor=4,
+                       by_partition=True,
+                       ms_tile_size_train_val_test=(32, 32, 32),
                        cloud_sea_removal=True, cloud_sea_weights_path=None, cloud_sea_pred_cutoff=0.90,
-                       print_tile_info=False, save_meta_to_disk=True):
+                       save_meta_to_disk=True):
     cloud_sea_model = None
     if cloud_sea_removal:
         if cloud_sea_weights_path is None:
@@ -379,7 +384,7 @@ def generate_all_tiles(meta, save_dir, ms_height_width=(32, 32), sr_factor=4, sa
     if save_meta_to_disk:
         save_meta_pickle_csv(meta, save_dir, 'metadata_tile_allocation', to_pickle=True, to_csv=True)
 
-    if save_by_partition:
+    if by_partition:
         n_tiles_train = count_tiles_in_partition(meta, train_val_test='train')
         n_tiles_val = count_tiles_in_partition(meta, train_val_test='val')
         n_tiles_test = count_tiles_in_partition(meta, train_val_test='test')
@@ -387,9 +392,12 @@ def generate_all_tiles(meta, save_dir, ms_height_width=(32, 32), sr_factor=4, sa
     else:
         n_tiles = count_tiles(meta)
         print('Generating', n_tiles, 'without separating by train/val/test partition.')
-    meta.apply(generate_tiles, axis=1, save_dir=save_dir,
-               ms_height_width=ms_height_width, sr_factor=sr_factor, save_by_partition=save_by_partition,
-               cloud_sea_removal=cloud_sea_removal, cloud_sea_model=cloud_sea_model,
-               cloud_sea_pred_cutoff=cloud_sea_pred_cutoff,
-               print_tile_info=print_tile_info)
+    meta.apply(generate_tiles, axis=1,
+               save_dir=save_dir,
+               ms_tile_size=ms_tile_size,
+               sr_factor=sr_factor,
+               by_partition=by_partition,
+               ms_tile_size_train_val_test=ms_tile_size_train_val_test,
+               cloud_sea_removal=cloud_sea_removal,
+               cloud_sea_model=cloud_sea_model, cloud_sea_pred_cutoff=cloud_sea_pred_cutoff)
     print('Tile generation finished')
