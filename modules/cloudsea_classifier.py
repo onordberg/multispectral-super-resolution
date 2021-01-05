@@ -19,6 +19,12 @@ def load_and_populate_label_df(label_df_path, meta):
     return label_df
 
 
+def cloudsea_preprocess(pan_img):
+    MODEL_INPUT_SIZE = 224  # efficientnet-b0 design size
+    pan_img = tf.image.resize(pan_img, [MODEL_INPUT_SIZE, MODEL_INPUT_SIZE], method='bicubic').numpy()
+    return pan_img
+
+
 def prepare_for_training(label_df, tif_paths_pan, tif_paths_ms,
                          pan_or_ms_or_both='pan',
                          pan_tile_size=128, ms_tile_size=32, resize_method='bilinear'):
