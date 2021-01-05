@@ -8,6 +8,7 @@ import geopandas
 from collections import Counter
 
 from modules.helpers import *
+from modules.cloudsea_classifier import *
 
 
 def resize_sat_img(src, rescale_factor=(1.0, 1.0), resampling='nearest'):
@@ -257,8 +258,16 @@ def is_border_pixel_in_image(img):
         return False
 
 
-def is_img_all_cloud_or_sea(img, model, pred_cutoff=0.9):
-    return NotImplementedError
+def is_img_all_cloud_or_sea(img, model, pred_cutoff=0.95):
+    # Since classification will be done on single images .predict is NOT recommended, but rather directly calling
+    # https://www.tensorflow.org/api_docs/python/tf/keras/Model#predict
+    cloud_sea_prob = model(img, training=False)
+    # cloud_sea_prob = model.predict(img)
+    print(cloud_sea_prob)
+    if cloud_sea_prob > pred_cutoff:
+        return True
+    else:
+        return False
 
 
 def generate_tiles(row,
@@ -299,14 +308,12 @@ def generate_tiles(row,
     discard_count_border_pixel = 0
     discard_count_cloud_sea = 0
 
-    if cloud_sea_removal:
-        raise NotImplementedError
-
     with rasterio.open(row['ms_tif_path'], 'r') as ms_src, rasterio.open(row['pan_tif_path'], 'r') as pan_src:
         print('Shapes', (ms_src.count, ms_src.shape[0], ms_src.shape[1]),
               (pan_src.count, pan_src.shape[0], pan_src.shape[1]))
 
         for i in range(row['n_tiles']):
+            tile_filename = str(str(i).zfill(5) + '.tif')
             while True:
                 ms_shape = [ms_src.shape[0], ms_src.shape[1], ms_src.count]
                 ms_box = np.array(get_random_box(ms_shape, (ms_tile_size, ms_tile_size)))  # square tile h == w
@@ -324,7 +331,8 @@ def generate_tiles(row,
 
                 # CLOUD/SEA DETECTOR. TODO: REPLACE WITH PROPER DETECTOR
                 if cloud_sea_removal:
-                    img_is_all_cloud_or_sea = is_img_all_cloud_or_sea(pan_tile, cloud_sea_model,
+                    img_is_all_cloud_or_sea = is_img_all_cloud_or_sea(cloudsea_preprocess(pan_tile),
+                                                                      cloud_sea_model,
                                                                       pred_cutoff=cloud_sea_pred_cutoff)
                 if is_border_pixel_in_image(ms_tile):
                     discard_count_border_pixel += 1
@@ -332,13 +340,14 @@ def generate_tiles(row,
                     discard_count_border_pixel += 1
                 # CLOUD/SEA TILE REMOVAL
                 elif cloud_sea_removal and img_is_all_cloud_or_sea:
-                    raise NotImplementedError
-                #     discard_count_cloud_sea += 1
+                    discard_count_cloud_sea += 1
+                    tile_filename = str('cloudsea_' + str(i).zfill(5) + '.tif')
+                    break
                 else:
                     break
 
             with rasterio.open(
-                    pathlib.Path(ms_dir, str(str(i).zfill(5) + '.tif')),
+                    pathlib.Path(ms_dir, tile_filename),
                     'w',
                     driver='GTiff',
                     width=ms_box[3],
@@ -350,7 +359,7 @@ def generate_tiles(row,
                 ms_dst.write(ms_tile)
 
             with rasterio.open(
-                    pathlib.Path(pan_dir, str(str(i).zfill(5) + '.tif')),
+                    pathlib.Path(pan_dir, tile_filename),
                     'w',
                     driver='GTiff',
                     width=pan_box[3],
@@ -376,11 +385,13 @@ def generate_all_tiles(meta, save_dir,
                        save_meta_to_disk=True):
     cloud_sea_model = None
     if cloud_sea_removal:
+        CLOUD_SEA_INPUT_SIZE = 224
+        cloud_sea_model = build_model(augment=False, input_shape=(CLOUD_SEA_INPUT_SIZE, CLOUD_SEA_INPUT_SIZE, 1))
         if cloud_sea_weights_path is None:
             raise ValueError('Provide path to cloud/sea classifier model weights.', cloud_sea_weights_path, 'given.')
         if isinstance(cloud_sea_weights_path, str):
             cloud_sea_weights_path = pathlib.Path(cloud_sea_weights_path)
-        raise NotImplementedError
+            cloud_sea_model.load_weights(cloud_sea_weights_path)
     if save_meta_to_disk:
         save_meta_pickle_csv(meta, save_dir, 'metadata_tile_allocation', to_pickle=True, to_csv=True)
 

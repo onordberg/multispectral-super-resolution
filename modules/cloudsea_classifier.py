@@ -20,6 +20,13 @@ def load_and_populate_label_df(label_df_path, meta):
 
 
 def cloudsea_preprocess(pan_img):
+    # From channels first to channels last
+    pan_img = rasterio.plot.reshape_as_image(pan_img)
+
+    # Add batch axis
+    if len(pan_img.shape) == 3:
+        pan_img = np.expand_dims(pan_img, axis=0)
+
     MODEL_INPUT_SIZE = 224  # efficientnet-b0 design size
     pan_img = tf.image.resize(pan_img, [MODEL_INPUT_SIZE, MODEL_INPUT_SIZE], method='bicubic').numpy()
     return pan_img
