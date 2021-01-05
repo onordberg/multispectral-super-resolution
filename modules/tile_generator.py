@@ -263,7 +263,7 @@ def is_img_all_cloud_or_sea(img, model, pred_cutoff=0.95):
     # https://www.tensorflow.org/api_docs/python/tf/keras/Model#predict
     cloud_sea_prob = model(img, training=False)
     # cloud_sea_prob = model.predict(img)
-    print(cloud_sea_prob)
+    # print(cloud_sea_prob.numpy()))
     if cloud_sea_prob > pred_cutoff:
         return True
     else:
@@ -305,8 +305,9 @@ def generate_tiles(row,
     pan_dir = pathlib.Path(image_dir, 'pan')
     pan_dir.mkdir(exist_ok=True)
 
-    discard_count_border_pixel = 0
-    discard_count_cloud_sea = 0
+    count_border_pixel = 0
+    count_cloud_sea = 0
+    tile_count = 0
 
     with rasterio.open(row['ms_tif_path'], 'r') as ms_src, rasterio.open(row['pan_tif_path'], 'r') as pan_src:
         print('Shapes', (ms_src.count, ms_src.shape[0], ms_src.shape[1]),
@@ -329,51 +330,57 @@ def generate_tiles(row,
                 pan_tile = pan_src.read(window=pan_win)
                 pan_win_transform = pan_src.window_transform(pan_win)
 
-                # CLOUD/SEA DETECTOR. TODO: REPLACE WITH PROPER DETECTOR
                 if cloud_sea_removal:
                     img_is_all_cloud_or_sea = is_img_all_cloud_or_sea(cloudsea_preprocess(pan_tile),
                                                                       cloud_sea_model,
                                                                       pred_cutoff=cloud_sea_pred_cutoff)
                 if is_border_pixel_in_image(ms_tile):
-                    discard_count_border_pixel += 1
+                    count_border_pixel += 1
                 elif is_border_pixel_in_image(pan_tile):
-                    discard_count_border_pixel += 1
-                # CLOUD/SEA TILE REMOVAL
+                    count_border_pixel += 1
                 elif cloud_sea_removal and img_is_all_cloud_or_sea:
-                    discard_count_cloud_sea += 1
-                    tile_filename = str('cloudsea_' + str(i).zfill(5) + '.tif')
+                    count_cloud_sea += 1
+                    # tile_filename = str('cloudsea_' + str(i).zfill(5) + '.tif')
+                    # break without saving to disk:
                     break
                 else:
+                    # else == write to disk
+                    with rasterio.open(
+                            pathlib.Path(ms_dir, tile_filename),
+                            'w',
+                            driver='GTiff',
+                            width=ms_box[3],
+                            height=ms_box[2],
+                            count=ms_box[4],
+                            dtype=ms_tile.dtype,
+                            crs=ms_src.crs,
+                            transform=ms_win_transform) as ms_dst:
+                        ms_dst.write(ms_tile)
+
+                    with rasterio.open(
+                            pathlib.Path(pan_dir, tile_filename),
+                            'w',
+                            driver='GTiff',
+                            width=pan_box[3],
+                            height=pan_box[2],
+                            count=pan_box[4],
+                            dtype=pan_tile.dtype,
+                            crs=pan_src.crs,
+                            transform=pan_win_transform) as pan_dst:
+                        pan_dst.write(pan_tile)
+                    tile_count += 1
                     break
 
-            with rasterio.open(
-                    pathlib.Path(ms_dir, tile_filename),
-                    'w',
-                    driver='GTiff',
-                    width=ms_box[3],
-                    height=ms_box[2],
-                    count=ms_box[4],
-                    dtype=ms_tile.dtype,
-                    crs=ms_src.crs,
-                    transform=ms_win_transform) as ms_dst:
-                ms_dst.write(ms_tile)
-
-            with rasterio.open(
-                    pathlib.Path(pan_dir, tile_filename),
-                    'w',
-                    driver='GTiff',
-                    width=pan_box[3],
-                    height=pan_box[2],
-                    count=pan_box[4],
-                    dtype=pan_tile.dtype,
-                    crs=pan_src.crs,
-                    transform=pan_win_transform) as pan_dst:
-                pan_dst.write(pan_tile)
-
-    print('Number of tiles discarded due to border pixels:', discard_count_border_pixel)
+    print('Number of tiles discarded and resampled due to border pixels:', count_border_pixel)
     if cloud_sea_removal:
-        print('Number of tiles discarded due to only clouds or sea:', discard_count_cloud_sea)
+        print('Number of tiles discarded due to only clouds or sea:', count_cloud_sea)
+    print('Tiles actually generated to disk:', tile_count)
+
+    # Storing both allocated and actual number of tiles in the meta dataframe
+    row['n_tiles_allocated'] = row['n_tiles']
+    row['n_tiles'] = tile_count
     print()
+    return row
 
 
 def generate_all_tiles(meta, save_dir,
@@ -381,7 +388,7 @@ def generate_all_tiles(meta, save_dir,
                        sr_factor=4,
                        by_partition=True,
                        ms_tile_size_train_val_test=(32, 32, 32),
-                       cloud_sea_removal=True, cloud_sea_weights_path=None, cloud_sea_pred_cutoff=0.90,
+                       cloud_sea_removal=True, cloud_sea_weights_path=None, cloud_sea_pred_cutoff=0.95,
                        save_meta_to_disk=True):
     cloud_sea_model = None
     if cloud_sea_removal:
@@ -392,8 +399,6 @@ def generate_all_tiles(meta, save_dir,
         if isinstance(cloud_sea_weights_path, str):
             cloud_sea_weights_path = pathlib.Path(cloud_sea_weights_path)
             cloud_sea_model.load_weights(cloud_sea_weights_path)
-    if save_meta_to_disk:
-        save_meta_pickle_csv(meta, save_dir, 'metadata_tile_allocation', to_pickle=True, to_csv=True)
 
     if by_partition:
         n_tiles_train = count_tiles_in_partition(meta, train_val_test='train')
@@ -403,12 +408,17 @@ def generate_all_tiles(meta, save_dir,
     else:
         n_tiles = count_tiles(meta)
         print('Generating', n_tiles, 'without separating by train/val/test partition.')
-    meta.apply(generate_tiles, axis=1,
-               save_dir=save_dir,
-               ms_tile_size=ms_tile_size,
-               sr_factor=sr_factor,
-               by_partition=by_partition,
-               ms_tile_size_train_val_test=ms_tile_size_train_val_test,
-               cloud_sea_removal=cloud_sea_removal,
-               cloud_sea_model=cloud_sea_model, cloud_sea_pred_cutoff=cloud_sea_pred_cutoff)
+    meta = meta.apply(generate_tiles, axis=1,
+                      save_dir=save_dir,
+                      ms_tile_size=ms_tile_size,
+                      sr_factor=sr_factor,
+                      by_partition=by_partition,
+                      ms_tile_size_train_val_test=ms_tile_size_train_val_test,
+                      cloud_sea_removal=cloud_sea_removal,
+                      cloud_sea_model=cloud_sea_model, cloud_sea_pred_cutoff=cloud_sea_pred_cutoff)
     print('Tile generation finished')
+
+    if save_meta_to_disk:
+        save_meta_pickle_csv(meta, save_dir, 'metadata_tile_allocation', to_pickle=True, to_csv=True)
+        print('Metadata dataframe saved as pickle and csv @', save_dir)
+    return meta
