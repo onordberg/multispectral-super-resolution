@@ -120,9 +120,15 @@ def shave_borders(imgs, shave_width):
     return imgs
 
 
-def mean_sd_of_train_tiles(train_tiles_path, sample_proportion=0.2, write_json=True):
-    if isinstance(train_tiles_path, str):
-        train_tiles_path = pathlib.Path(train_tiles_path)
+def mean_sd_of_train_tiles(tiles_path, sample_proportion=0.2, write_json=True):
+    if isinstance(tiles_path, str):
+        tiles_path = pathlib.Path(tiles_path)
+
+    # Check if there is a subdirectory named "train"
+    train_tiles_path = tiles_path.joinpath('train')
+    if not train_tiles_path.is_dir():
+        raise FileNotFoundError('Directory' + tiles_path.as_posix() + 'does not include a subdirectory named "train"')
+
     tile_paths = list(train_tiles_path.glob(str('**/*.tif')))
     big_n = len(tile_paths)
 
@@ -153,7 +159,7 @@ def mean_sd_of_train_tiles(train_tiles_path, sample_proportion=0.2, write_json=T
         mean_sd = {'mean': grand_mean,
                    'sd': grand_sd}
         json_object = json.dumps(mean_sd, indent=4)
-        json_path = train_tiles_path.joinpath('mean_sd.json')
+        json_path = tiles_path.joinpath('train_mean_sd.json')
         with open(json_path, 'w') as file:
             file.write(json_object)
         print('Saved mean and sd values to disk as json file @', json_path.as_posix())
@@ -161,10 +167,10 @@ def mean_sd_of_train_tiles(train_tiles_path, sample_proportion=0.2, write_json=T
     return grand_mean, grand_sd
 
 
-def read_mean_sd_json(train_tiles_path):
-    if isinstance(train_tiles_path, str):
-        train_tiles_path = pathlib.Path(train_tiles_path)
-    json_path = train_tiles_path.joinpath('mean_sd.json')
+def read_mean_sd_json(tiles_path):
+    if isinstance(tiles_path, str):
+        tiles_path = pathlib.Path(tiles_path)
+    json_path = tiles_path.joinpath('train_mean_sd.json')
     with open(json_path, 'r') as file:
         mean_sd = json.load(file)
     print('Loaded mean', round(mean_sd['mean'], 1), 'and sd', round(mean_sd['sd'], 1),
