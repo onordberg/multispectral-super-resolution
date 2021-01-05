@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import pathlib
 import numpy as np
+import random
 import math
 import json
 import rasterio
@@ -119,33 +120,43 @@ def shave_borders(imgs, shave_width):
     return imgs
 
 
-def mean_sd_of_all_train_tiles(train_tiles_path, write_json=True):
+def mean_sd_of_train_tiles(train_tiles_path, sample_proportion=0.2, write_json=True):
     if isinstance(train_tiles_path, str):
         train_tiles_path = pathlib.Path(train_tiles_path)
     tile_paths = list(train_tiles_path.glob(str('**/*.tif')))
+    big_n = len(tile_paths)
 
-    n = len(tile_paths)
-    means = np.zeros(n)
-    sds = np.zeros(n)
+    # Sampling small_n tiles and discarding the rest from the tile_paths list
+    random.shuffle(tile_paths)  # Shuffles in place
+    small_n = int(big_n * sample_proportion)
+    tile_paths = tile_paths[:small_n]
+
     print('Path to image tiles:', train_tiles_path)
-    print('Calculating mean and sd of', n, 'image tiles.')
+    print('Calculating mean and sd of', small_n, 'image tiles from the population of', big_n, 'tiles.')
+    means = np.zeros(small_n)
+    sds = np.zeros(small_n)
     for i, tile_path in enumerate(tile_paths):
         img = geotiff_to_ndarray(tile_path)
         means[i] = np.mean(img)
         sds[i] = np.std(img)
-        if i % 5000 == 0:
+        if (i + 1) % 5000 == 0:
             print('Calculated mean and sd of', i, 'tiles')
 
     grand_mean = np.mean(means)
     grand_sd = np.mean(sds)
 
+    print('Finished')
+    print('Mean:', grand_mean.round(1))
+    print('Standard deviation', grand_sd.round(1))
+
     if write_json:
-        d = {'mean': grand_mean,
-             'sd': grand_sd}
-        json_object = json.dumps(d, indent=4)
+        mean_sd = {'mean': grand_mean,
+                   'sd': grand_sd}
+        json_object = json.dumps(mean_sd, indent=4)
         json_path = train_tiles_path.joinpath('mean_sd.json')
         with open(json_path, 'w') as file:
             file.write(json_object)
+        print('Saved mean and sd values to disk as json file @', json_path.as_posix())
 
     return grand_mean, grand_sd
 
@@ -155,8 +166,10 @@ def read_mean_sd_json(train_tiles_path):
         train_tiles_path = pathlib.Path(train_tiles_path)
     json_path = train_tiles_path.joinpath('mean_sd.json')
     with open(json_path, 'r') as file:
-        d = json.load(file)
-    return d['mean'], d['sd']
+        mean_sd = json.load(file)
+    print('Loaded mean', round(mean_sd['mean'], 1), 'and sd', round(mean_sd['sd'], 1),
+          'from json file @', json_path.as_posix())
+    return mean_sd['mean'], mean_sd['sd']
 
 
 def stretch_img(image, individual_bands=True):
@@ -271,9 +284,9 @@ def ms_to_rgb_batch(ms_batch, sensor='WV02'):
 def geotiff_to_ndarray(tif_paths):
     if isinstance(tif_paths, pathlib.Path):
         tif_paths = [tif_paths]
-    if isinstance(tif_paths, str):
+    elif isinstance(tif_paths, str):
         tif_paths = [pathlib.Path(tif_paths)]
-    if isinstance(tif_paths, list):
+    elif isinstance(tif_paths, list):
         pass  # TODO: Assert that list contains either strings or pathlib.Path objects
     else:
         raise NotImplementedError('tif_paths argument must either be str, pathlib.Path or a list of either')
