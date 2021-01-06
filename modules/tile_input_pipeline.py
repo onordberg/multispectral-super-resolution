@@ -17,19 +17,25 @@ class GeotiffDataset:
                  batch_size=16,
                  ms_tile_shape=(32, 32, 8),
                  pan_tile_shape=(128, 128, 1),
+                 sensor='WV02',  # 'WV02', 'GE01', 'WV03_VNIR'
                  band_selection='all',  # (1, 2, 4, 6)
                  mean_correction=None,
                  cache_memory=True,
                  cache_file=None,
+                 repeat=True,
+                 shuffle=True,
                  shuffle_buffer_size=1000):
         self.tiles_path = tiles_path
         self.batch_size = batch_size
         self.ms_tile_shape = ms_tile_shape
         self.pan_tile_shape = pan_tile_shape
+        self.sensor = sensor
         self.band_selection = band_selection
         self.mean_correction = mean_correction
         self.cache_memory = cache_memory
         self.cache_file = cache_file
+        self.repeat = repeat
+        self.shuffle = shuffle
         self.shuffle_buffer_size = shuffle_buffer_size
 
         if isinstance(self.band_selection, tuple) or isinstance(self.band_selection, list):
@@ -48,7 +54,12 @@ class GeotiffDataset:
         return self.dataset
 
     def build_dataset(self):
-        ds = tf.data.Dataset.list_files(str(pathlib.Path(self.tiles_path) / '*/ms*.tif'))
+        file_pattern = str(pathlib.Path(self.tiles_path).joinpath(self.sensor + '*', 'ms*', '*.tif'))
+        # print(file_pattern)
+        if self.shuffle:
+            ds = tf.data.Dataset.list_files(file_pattern, shuffle=True)
+        else:
+            ds = tf.data.Dataset.list_files(file_pattern, shuffle=False)
         ds = ds.map(self.process_path,
                     num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
@@ -94,15 +105,12 @@ class GeotiffDataset:
         # Memory caching (both file and memory can be combined)
         if self.cache_memory:
             ds = ds.cache()
-
-        ds = ds.shuffle(buffer_size=self.shuffle_buffer_size)
-
+        if self.shuffle:
+            ds = ds.shuffle(buffer_size=self.shuffle_buffer_size)
         # Repeat forever
-        ds = ds.repeat()
-
+        if self.repeat:
+            ds = ds.repeat()
         ds = ds.batch(self.batch_size)
-
         # `prefetch` lets the dataset fetch batches in the background while the model is training.
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-
         return ds
