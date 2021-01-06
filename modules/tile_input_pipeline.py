@@ -7,84 +7,102 @@ import tensorflow as tf
 
 from modules.image_utils import *
 
-#TODO: Preserve filename through the process
-#TODO: Preserve georeference information through the process
 
-def wv02_imitate_ge01(img):
-    img = np.take(img, IMITATION_BANDS, -1)
-    return img
+# TODO: Preserve filename through the process
+# TODO: Preserve georeference information through the process
 
+class GeotiffDataset:
+    def __init__(self,
+                 tiles_path,
+                 batch_size=16,
+                 ms_tile_shape=(32, 32, 8),
+                 pan_tile_shape=(128, 128, 1),
+                 band_selection='all',  # (1, 2, 4, 6)
+                 mean_correction=None,
+                 cache_memory=True,
+                 cache_file=None,
+                 shuffle_buffer_size=1000):
+        self.tiles_path = tiles_path
+        self.batch_size = batch_size
+        self.ms_tile_shape = ms_tile_shape
+        self.pan_tile_shape = pan_tile_shape
+        self.band_selection = band_selection
+        self.mean_correction = mean_correction
+        self.cache_memory = cache_memory
+        self.cache_file = cache_file
+        self.shuffle_buffer_size = shuffle_buffer_size
 
-def decode_geotiff(image_path):
-    image_path = pathlib.Path(image_path.numpy().decode())
-    with rasterio.open(image_path) as src:
-        img = src.read()
-    img = rasterio.plot.reshape_as_image(img) # from channels first to channels last
-    
-    # Imitate GE01 sensor by dropping WV02 bands?
-    if IMITATE_GE01:
-        img = wv02_imitate_ge01(img)
-    
-    img = input_scaler(img, radius=1.0, output_dtype=np.float32, uint_bit_depth=11, 
-                       mean_correction=True, mean=mean_of_train_tiles)
-    return img
+        if isinstance(self.band_selection, tuple) or isinstance(self.band_selection, list):
+            self.band_selection_bool = True
+        elif self.band_selection == 'all':
+            self.band_selection_bool = False
 
+        if isinstance(self.mean_correction, float) or isinstance(self.mean_correction, int):
+            self.mean_correction_bool = True
+        else:
+            self.mean_correction_bool = False
 
-def process_path(ms_tile_path):
-    img_string_UID = tf.strings.split(ms_tile_path, os.sep)[-3]
-    tile_UID = tf.strings.split(tf.strings.split(ms_tile_path, os.sep)[-1], '.')[0]
-    
-    ms_img = tf.py_function(decode_geotiff, [ms_tile_path], [tf.float32], name = 'decode_geotiff_ms')
-    pan_tile_path = tf.strings.regex_replace(ms_tile_path, '\\\\ms\\\\', '\\\\pan\\\\')
-    pan_img = tf.py_function(decode_geotiff, [pan_tile_path], [tf.float32], name = 'decode_geotiff_pan')
-    
-    # Removing first axis as this will create problems when batching later
-    ms_img = tf.squeeze(ms_img, [0])
-    pan_img = tf.squeeze(pan_img, [0])
-    return ms_img, pan_img
+        self.dataset = self.build_dataset()
 
-# https://www.tensorflow.org/tutorials/load_data/images
-def prepare_for_training(ds, batch_size, cache_memory=True, cache_file=None, shuffle_buffer_size=100):
-    # File caching
-    if isinstance(cache_file, str):
-        ds = ds.cache(cache_file)
-    # Memory caching (both can be combined)
-    if cache_memory:
-        ds = ds.cache()
+    def __call__(self):
+        return self.dataset
 
-    ds = ds.shuffle(buffer_size=shuffle_buffer_size)
+    def build_dataset(self):
+        ds = tf.data.Dataset.list_files(str(pathlib.Path(self.tiles_path) / '*/ms*.tif'))
+        ds = ds.map(self.process_path,
+                    num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-    # Repeat forever
-    ds = ds.repeat()
+        ds = self.prepare_for_training(ds)
+        return ds
 
-    ds = ds.batch(batch_size)
-    
-    # `prefetch` lets the dataset fetch batches in the background while the model
-    # is training.
-    ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    def decode_geotiff(self, image_path):
+        image_path = pathlib.Path(image_path.numpy().decode())
+        with rasterio.open(image_path) as src:
+            img = src.read()
+        img = rasterio.plot.reshape_as_image(img)  # from channels first to channels last
 
-    return ds
+        if self.band_selection_bool:
+            img = select_bands(img, self.band_selection)
 
-def dataset_from_tif_tiles(tiles_path, batch_size,
-                           ms_tile_shape=(32,32,8), pan_tile_shape=(128,128,1),
-                           imitate_ge01=False, imitation_bands=(1, 2, 4, 6), mean_correction=None,
-                           cache_memory=True, cache_file=None, shuffle_buffer_size = 1000
-                           ):
-    
-    # MS_TILE_SHAPE = (HEIGHT, WIDTH, BANDS), PAN_TILE_SHAPE = (HEIGHT, WIDTH, BANDS)
-    global MS_TILE_SHAPE
-    global PAN_TILE_SHAPE
-    global IMITATE_GE01
-    global IMITATION_BANDS
-    if isinstance(mean_correction, (float, int)):
-        global mean_of_train_tiles
-        mean_of_train_tiles = mean_correction
-    
-    MS_TILE_SHAPE, PAN_TILE_SHAPE = ms_tile_shape, pan_tile_shape
-    IMITATE_GE01, IMITATION_BANDS = imitate_ge01, imitation_bands
-    
-    ds = tf.data.Dataset.list_files(str(pathlib.Path(tiles_path)/'*/ms*.tif'))
-    ds = ds.map(process_path, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        img = input_scaler(img,
+                           radius=1.0,
+                           output_dtype='float32',
+                           uint_bit_depth=11,
+                           mean_correction=self.mean_correction_bool,
+                           mean=self.mean_correction,
+                           print_ranges=False)
+        return img
 
-    ds = prepare_for_training(ds, batch_size, cache_memory, cache_file, shuffle_buffer_size)
-    return ds
+    def process_path(self, ms_tile_path):
+        # img_string_UID = tf.strings.split(ms_tile_path, os.sep)[-3]
+        # tile_UID = tf.strings.split(tf.strings.split(ms_tile_path, os.sep)[-1], '.')[0]
+
+        ms_img = tf.py_function(self.decode_geotiff, [ms_tile_path], [tf.float32], name='decode_geotiff_ms')
+        pan_tile_path = tf.strings.regex_replace(ms_tile_path, '\\\\ms\\\\', '\\\\pan\\\\')
+        pan_img = tf.py_function(self.decode_geotiff, [pan_tile_path], [tf.float32], name='decode_geotiff_pan')
+
+        # Removing first axis as this will create problems when batching later
+        ms_img = tf.squeeze(ms_img, [0])
+        pan_img = tf.squeeze(pan_img, [0])
+        return ms_img, pan_img
+
+    # https://www.tensorflow.org/tutorials/load_data/images
+    def prepare_for_training(self, ds):
+        # File caching
+        if isinstance(self.cache_file, str):
+            ds = ds.cache(self.cache_file)
+        # Memory caching (both file and memory can be combined)
+        if self.cache_memory:
+            ds = ds.cache()
+
+        ds = ds.shuffle(buffer_size=self.shuffle_buffer_size)
+
+        # Repeat forever
+        ds = ds.repeat()
+
+        ds = ds.batch(self.batch_size)
+
+        # `prefetch` lets the dataset fetch batches in the background while the model is training.
+        ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+        return ds
