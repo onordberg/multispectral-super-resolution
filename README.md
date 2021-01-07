@@ -62,17 +62,17 @@ The actual thesis is located in a separate private repository https://github.com
   - Status:
    - 2500 tiles in various sizes generated and labeled. 
    - Configured EfficientNet-B0 classifier 224x224 model with data augmentation (flip, rotation, flip, contrast) and tuned it with hyperparameters:
-    - Adam learning rate: 0.001, 0.0005, 0.0001
-    - resizing method: nearest neighbor, bilinear, bicubic
-    - band-configuration: pan, ms, pan+ms
+     - Adam learning rate: 0.001, 0.0005, 0.0001
+     - resizing method: nearest neighbor, bilinear, bicubic
+     - band-configuration: pan, ms, pan+ms
   - Findings:
-   - validation accuracy converges around 0.95
-   - pan only configuration performs significantly better (possibly because of significant upsampling needed for ms bands)
-   - all learning rates seem to converge, albeit some unstability with 0.001 and 0.0001 converges slowly, favoring the middle alternativ 0.0005
-   - all resizing methods produce quite similary results, however bilinear performs slightly better and is a good speed/quality compromise
+    - validation accuracy converges around 0.95
+    - pan only configuration performs significantly better (possibly because of significant upsampling needed for ms bands)
+    - all learning rates seem to converge, albeit some unstability with 0.001 and 0.0001 converges slowly, favoring the middle alternativ 0.0005
+    - all resizing methods produce quite similary results, however bilinear performs slightly better and is a good speed/quality compromise
   - Conclusion:
-   - EfficientNet-B0, 224x224x1 (pan), data augmentation (flip, rotation, flip, contrast), Adam learning rate 0.0005, bilinear resizing, validation accuracry approx 0.95
-   - Set prediction cutoff to 0.95 when generating tiles. Above 0.95 results in 0.9 chance of tile being discarded, ensuring some tiles with only sea and clouds, but not that many
+    - EfficientNet-B0, 224x224x1 (pan), data augmentation (flip, rotation, flip, contrast), Adam learning rate 0.0005, bilinear resizing, validation accuracry approx 0.95
+    - Set prediction cutoff to 0.95 when generating tiles. Above 0.95 results in 0.9 chance of tile being discarded, ensuring some tiles with only sea and clouds, but not that many
 - [X] Do a study of how tile sizes affect NIQE and Ma metrics. Hypothesis: Too small tile sizes are not good. This could probably be an appendix in the thesis if it shows something interesting. Conclusion: 512x512 is a good compromise when validating with NIQE and Ma. This is large enough to giver reasonable results, and still small enough to not take too much time and require too much GPU memory. It is also probably slightly favorable that 512 is a multiple of 128 (the size of training tiles), however this has not been studied.
 - [X] Redesign of tile generator to handle expected number of tiles per square meter as configuration metric instead of fixed number of tiles. This is a much more meaningful number.
 - [X] Several improvements on the tile input pipeline (class with instance variables instead of a series of functions with global variables... ugly -> less ugly)
