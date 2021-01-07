@@ -58,16 +58,33 @@ The actual thesis is located in a separate private repository https://github.com
     - [X] NIQE: There are some indications in discussion threads that the scikit-video implementation is buggy so to be able to trust this implementation a comparison with the matlab implementation is needed. If there are deviations the Matlab implementation seem more trustworthy.
     - [X] PI (a simple average function of Ma and NIQE)
 - [X] Implement all abstract methods of my `Esrgan` model class
+- [X] Create a "good enough" cloud/sea tile classificator. After some preliminary training runs I have identified that it is troublesome that almost 50% of all tiles are sea or clouds only. I think the simplest, cleanest way to counter this is to create a neural net cloud/sea detector and undersample those tiles significantly when generating tiles from the satellite images. I hypothesize that not much labeled data is needed for the classifier to generalize well. Alternatively I could have manually drawn a polygon that include the sea area in the images, but this would also eliminate ships and would not help with clouds.
+  - Status:
+   - 2500 tiles in various sizes generated and labeled. 
+   - Configured EfficientNet-B0 classifier 224x224 model with data augmentation (flip, rotation, flip, contrast) and tuned it with hyperparameters:
+    - Adam learning rate: 0.001, 0.0005, 0.0001
+    - resizing method: nearest neighbor, bilinear, bicubic
+    - band-configuration: pan, ms, pan+ms
+  - Findings:
+   - validation accuracy converges around 0.95
+   - pan only configuration performs significantly better (possibly because of significant upsampling needed for ms bands)
+   - all learning rates seem to converge, albeit some unstability with 0.001 and 0.0001 converges slowly, favoring the middle alternativ 0.0005
+   - all resizing methods produce quite similary results, however bilinear performs slightly better and is a good speed/quality compromise
+  - Conclusion:
+   - EfficientNet-B0, 224x224x1 (pan), data augmentation (flip, rotation, flip, contrast), Adam learning rate 0.0005, bilinear resizing, validation accuracry approx 0.95
+   - Set prediction cutoff to 0.95 when generating tiles. Above 0.95 results in 0.9 chance of tile being discarded, ensuring some tiles with only sea and clouds, but not that many
+- [X] Do a study of how tile sizes affect NIQE and Ma metrics. Hypothesis: Too small tile sizes are not good. This could probably be an appendix in the thesis if it shows something interesting. Conclusion: 512x512 is a good compromise when validating with NIQE and Ma. This is large enough to giver reasonable results, and still small enough to not take too much time and require too much GPU memory. It is also probably slightly favorable that 512 is a multiple of 128 (the size of training tiles), however this has not been studied.
+- [X] Redesign of tile generator to handle expected number of tiles per square meter as configuration metric instead of fixed number of tiles. This is a much more meaningful number.
+- [X] Several improvements on the tile input pipeline (class with instance variables instead of a series of functions with global variables... ugly -> less ugly)
 
 ### Work in progress
-- [ ] Create a simple cloud/sea tile classificator. After some preliminary training runs I have identified that it is troublesome that almost 50% of all tiles are sea or clouds only. I think the simplest, cleanest way to counter this is to create a neural net cloud/sea detector and undersample those tiles significantly when generating tiles from the satellite images. I hypothesize that not much labeled data is needed for the classificator to generalize well. Alternatively I could have manually drawn a polygon that include the sea area in the images, but this would also eliminate ships and would not help with clouds.
-  - Status: 2500 tiles in various sizes generated and labeled. EfficientNet model trained with data augmentation achieving validation accuracy of approx (0.90, 0.95). Remaining: Integrate in tile generator.
-- [ ] Do a study of how tile sizes affect NIQE and Ma metrics. Hypothesis: Too small tile sizes are not good. This could probably be an appendix in the thesis if it shows something interesting.
+- [ ] Refactoring all code into Python modules with Jupyter Notebooks designed to do the actual experiments
+ - Status: This took way longer than initially planned, but lots of smaller issues have been identified and fixed. Hopefully I get a return on my investment when running the experiments. Currently collecting callbacks into a `logger.py` module.
 - [ ] Calculate `Ma`, `NIQE` and `PI` on a smaller proportion of the validation set (due to performance reasons)
-
 
 ### Next
 - [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on satellite images as alternative to VGG-19 model trained on ImageNet 
   - [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) looked promising, but will likely not work very well due to input being the 13 bands of the Sentinel-2 sensor. Mine should either be input of panchromatic or RGB since I am comparing with my SR generated panchromatic.
-- [ ] Implement evaluation metric LPIPS (NN-based image quality metric) in TensorFlow
+  - Update: If I have the time I will do this as an experiment, but it is not on the top of the priority list
 - [ ] Implement network interpolation between the PSNR-pretrained model and the GAN trained model as done in the ESRGAN paper
+
