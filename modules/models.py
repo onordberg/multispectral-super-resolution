@@ -117,13 +117,24 @@ def rrdb_model(size_in, channels_in, channels_out, n_blocks=23, n_filters=64, gr
     return tf.keras.Model(inputs, out, name=name)
 
 
-def build_generator(pretrain_or_gan='pretrain', pretrain_learning_rate=5e-5, pretrain_loss_l1_l2='l1',
-                    pretrain_beta_1=0.9, pretrain_beta_2=0.999, pretrain_metrics=('PSNR', 'SSIM'),
+def build_generator(pretrain_or_gan='pretrain',
+                    pretrain_learning_rate=5e-5,
+                    pretrain_loss_l1_l2='l1',
+                    pretrain_beta_1=0.9,
+                    pretrain_beta_2=0.999,
+                    pretrain_metrics=('PSNR', 'SSIM'),
                     scaled_range=2.0,
-                    n_channels_in=4, n_channels_out=1,
+                    n_channels_in=4,
+                    n_channels_out=1,
                     height_width_in=None,  # None will make network image size agnostic
-                    n_filters=64, n_blocks=23):
-    rrdb = rrdb_model(height_width_in, n_channels_in, n_channels_out, n_blocks=n_blocks, n_filters=n_filters)
+                    n_filters=64,
+                    n_blocks=23):
+
+    rrdb = rrdb_model(height_width_in,
+                      n_channels_in,
+                      n_channels_out,
+                      n_blocks=n_blocks,
+                      n_filters=n_filters)
 
     metrics_compile = []
     if 'PSNR' in pretrain_metrics or 'psnr' in pretrain_metrics:
@@ -138,13 +149,20 @@ def build_generator(pretrain_or_gan='pretrain', pretrain_learning_rate=5e-5, pre
             loss = 'mean_squared_error'
         else:
             raise ValueError('pretrain_l1_l2 argument must be either "l1" or "l2"')
-        rrdb.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=pretrain_learning_rate,
-                                                        beta_1=pretrain_beta_1, beta_2=pretrain_beta_2),
-                     loss=loss, metrics=metrics_compile)
+        rrdb.compile(optimizer=
+                     tf.keras.optimizers.Adam(learning_rate=pretrain_learning_rate,
+                                                        beta_1=pretrain_beta_1,
+                                                        beta_2=pretrain_beta_2),
+                     loss=loss,
+                     metrics=metrics_compile)
     return rrdb
 
 
-def build_discriminator(size, channels, n_filters=64, weight_decay=0., name='Discriminator_VGG'):
+def build_discriminator(size,
+                        channels,
+                        n_filters=64,
+                        weight_decay=0.,
+                        name='Discriminator_VGG'):
     """Discriminator VGG"""
     lrelu_f = functools.partial(LeakyReLU, alpha=0.2)
     conv_k3s1_f = functools.partial(Conv2D,
@@ -190,8 +208,11 @@ def build_discriminator(size, channels, n_filters=64, weight_decay=0., name='Dis
     return tf.keras.Model(inputs, out, name=name)
 
 
-def build_bicubic_model(upsample_factor, shape_in=(32, 32, 3),
-                        loss='mean_absolute_error', metrics=('PSNR', 'SSIM'), scaled_range=2.0):
+def build_bicubic_model(upsample_factor,
+                        shape_in=(32, 32, 3),
+                        loss='mean_absolute_error',
+                        metrics=('PSNR', 'SSIM'),
+                        scaled_range=2.0):
     inputs = Input(shape_in, name='input_image')
     x = Lambda(lambda z:
                tf.expand_dims(tf.math.reduce_mean(z, axis=-1), axis=-1))(inputs)
