@@ -129,7 +129,6 @@ def build_generator(pretrain_or_gan='pretrain',
                     height_width_in=None,  # None will make network image size agnostic
                     n_filters=64,
                     n_blocks=23):
-
     rrdb = rrdb_model(height_width_in,
                       n_channels_in,
                       n_channels_out,
@@ -149,12 +148,12 @@ def build_generator(pretrain_or_gan='pretrain',
             loss = 'mean_squared_error'
         else:
             raise ValueError('pretrain_l1_l2 argument must be either "l1" or "l2"')
-        rrdb.compile(optimizer=
-                     tf.keras.optimizers.Adam(learning_rate=pretrain_learning_rate,
-                                                        beta_1=pretrain_beta_1,
-                                                        beta_2=pretrain_beta_2),
-                     loss=loss,
-                     metrics=metrics_compile)
+        rrdb.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=pretrain_learning_rate,
+                                               beta_1=pretrain_beta_1,
+                                               beta_2=pretrain_beta_2),
+            loss=loss,
+            metrics=metrics_compile)
     return rrdb
 
 
@@ -208,17 +207,20 @@ def build_discriminator(size,
     return tf.keras.Model(inputs, out, name=name)
 
 
-def build_bicubic_model(upsample_factor,
-                        shape_in=(32, 32, 3),
-                        loss='mean_absolute_error',
-                        metrics=('PSNR', 'SSIM'),
-                        scaled_range=2.0):
+def build_deterministic_sr_model(upsample_factor,
+                                 resize_method='bicubic',  # 'bilinear', 'nearest', 'lanczos5'
+                                 loss='mean_absolute_error',
+                                 metrics=('PSNR', 'SSIM'),
+                                 scaled_range=2.0):
+    # https://www.tensorflow.org/api_docs/python/tf/image/resize
+    shape_in = (None, None, None)
     inputs = Input(shape_in, name='input_image')
     x = Lambda(lambda z:
                tf.expand_dims(tf.math.reduce_mean(z, axis=-1), axis=-1))(inputs)
     x = Lambda(lambda z:
-               tf.image.resize(z, [shape_in[0] * upsample_factor, shape_in[1] * upsample_factor],
-                               method=tf.image.ResizeMethod.BICUBIC, preserve_aspect_ratio=False,
+               tf.image.resize(z, [tf.shape(z)[1] * upsample_factor, tf.shape(z)[2] * upsample_factor],
+                               method=resize_method,
+                               preserve_aspect_ratio=False,
                                antialias=False, name=None))(x)
     model = tf.keras.Model(inputs, x, name='bicubic_upsample_model')
 
@@ -320,7 +322,7 @@ class EsrganModel(tf.keras.Model):
 
         if metric_ma and metric_niqe:
             self.matlab_engine = MatLabEngine(wd_path=matlab_wd_path, ma=True, niqe=True,
-                                              input_range=(-1,1), output_dtype='uint16', output_bit_depth=11,
+                                              input_range=(-1, 1), output_dtype='uint16', output_bit_depth=11,
                                               scale_mean=scale_mean, stretch=False, shave_width=shave_width)
         if metric_ma and not metric_niqe:
             self.matlab_engine = MatLabEngine(wd_path=matlab_wd_path, ma=True, niqe=False,
@@ -498,7 +500,6 @@ def build_esrgan_model(pretrain_weights_path,
                        G_loss_generator_w=0.005,
                        metric_reg=False, metric_ma=False, metric_niqe=False, matlab_wd_path='modules/matlab',
                        scale_mean=0, scaled_range=2.0, shave_width=4):
-
     generator = build_generator(pretrain_or_gan='gan',
                                 n_channels_in=n_channels_in, n_channels_out=n_channels_out,
                                 height_width_in=None,  # None will make network image size agnostic
