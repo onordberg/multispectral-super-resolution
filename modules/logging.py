@@ -23,32 +23,37 @@ class EsrganLogger:
                  ):
         self.callbacks = []
         self.model_name = model_name
+
         if save_models:
             self.model_save_dir = models_save_dir
             if isinstance(self.model_save_dir, str):
                 self.model_save_dir = pathlib.Path(self.model_save_dir)
+            self.model_save_dir.mkdir(parents=True, exist_ok=True)
             self.save_weights_only = save_weights_only
             self.build_checkpoint_callback()
+
         if log_tensorboard:
             self.tensorboard_logs_dir = tensorboard_logs_dir
             if isinstance(self.tensorboard_logs_dir, str):
                 self.tensorboard_logs_dir = pathlib.Path(self.tensorboard_logs_dir)
             self.tensorboard_logs_dir.mkdir(parents=True, exist_ok=True)
             self.log_dir = self.build_tb_callback()
+
             if log_train_images or log_val_images:
                 self.model = model
+
             if log_train_images:
                 self.ds_train = train_image_dataset
                 self.n_train_image_batches = n_train_image_batches
                 self.n_train_images = 0
                 self.train_file_writer, self.train_image_batches = self.build_train_image_logger()
-                self.callbacks.append(tf.keras.callbacks.LambdaCallback(on_epoch_begin=self.build_train_image_logger))
+                self.callbacks.append(tf.keras.callbacks.LambdaCallback(on_epoch_begin=self.train_image_logger))
 
     def build_train_image_logger(self):
         train_file_writer = tf.summary.create_file_writer(self.log_dir.joinpath('train').as_posix())
         train_image_batches = []
         for i, batch in enumerate(self.ds_train):
-            if i == self.n_train_image_batches - 1:
+            if i == self.n_train_image_batches:
                 break
             self.n_train_images += batch[0].shape[0]
             train_image_batches.append(batch)
