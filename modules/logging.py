@@ -68,9 +68,8 @@ class EsrganLogger:
         assert lr.shape[0] == hr.shape[0] == sr.shape[0] == self.n_train_images
         with self.train_file_writer.as_default():
             # LR and HR only need to be written on first epoch
-            if epoch == 0:
-                tf.summary.image('train-LR(MS)', lr, step=epoch, max_outputs=self.n_train_images)
-                tf.summary.image('train-HR(PAN)', hr, step=epoch, max_outputs=self.n_train_images)
+            tf.summary.image('train-LR(MS)', lr, step=0, max_outputs=self.n_train_images)
+            tf.summary.image('train-HR(PAN)', hr, step=0, max_outputs=self.n_train_images)
             # SR written every epoch
             tf.summary.image('train-SR', sr, step=epoch, max_outputs=self.n_train_images)
 
