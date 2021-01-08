@@ -15,8 +15,14 @@ def get_max_uint_from_bit_depth(bit_depth):
     return 2 ** bit_depth - 1
 
 
-def input_scaler(arr, radius=1.0, output_dtype='float32', uint_bit_depth=11,
-                 mean_correction=False, mean=None, print_ranges=False):
+def input_scaler(arr,
+                 radius=1.0,
+                 output_dtype='float32',
+                 uint_bit_depth=11,
+                 mean_correction=False,
+                 mean=None,
+                 print_ranges=False,
+                 return_range_only=False):
     """Scales an int ndarray to a float ndarray with a specified radius around 0.0
 
     If radius=1.0 the scaler scales the ndarray to [-1.0, 1.0].
@@ -39,6 +45,11 @@ def input_scaler(arr, radius=1.0, output_dtype='float32', uint_bit_depth=11,
                          True: Subtracts a mean when scaling so that the mean
                                of the outputs are 0.0. Must then also specify mean arg.
         mean: Mean scalar value that will be subtracted
+        print_ranges: True/False. Toggles printing input and output ranges as well as min/max output
+        return_range_only: True/False.
+                           True: Only the output float range is returned. The array is NOT returned.
+                                 This is useful if you need the calculated range for something.
+                                 Example: When using metrics like PSNR and SSIM
 
     Returns:
         A float numpy ndarray scaled to a radius around 0.0
@@ -66,6 +77,8 @@ def input_scaler(arr, radius=1.0, output_dtype='float32', uint_bit_depth=11,
         print('Input (uint) range:', uint_range)
         print('Output (float) range', float_range)
         print('Output (float) min, max:', min_float_value, max_float_value)
+    if return_range_only:
+        return float_range
     arr /= scale
     arr = arr.astype(output_dtype)
     return arr

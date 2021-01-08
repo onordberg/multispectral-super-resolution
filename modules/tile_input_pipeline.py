@@ -50,7 +50,7 @@ class GeotiffDataset:
 
         self.dataset = self.build_dataset()
 
-    def __call__(self):
+    def get_dataset(self):
         return self.dataset
 
     def build_dataset(self):
@@ -81,7 +81,8 @@ class GeotiffDataset:
                            uint_bit_depth=11,
                            mean_correction=self.mean_correction_bool,
                            mean=self.mean_correction,
-                           print_ranges=False)
+                           print_ranges=False,
+                           return_range_only=False)
         return img
 
     def process_path(self, ms_tile_path):
@@ -114,3 +115,15 @@ class GeotiffDataset:
         # `prefetch` lets the dataset fetch batches in the background while the model is training.
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         return ds
+
+    def get_scaler_output_range(self, print_ranges=False):
+        dummy_arr = np.zeros(1)
+        output_range = input_scaler(dummy_arr,
+                                    radius=1.0,
+                                    output_dtype='float32',
+                                    uint_bit_depth=11,
+                                    mean_correction=self.mean_correction_bool,
+                                    mean=self.mean_correction,
+                                    print_ranges=print_ranges,
+                                    return_range_only=True)
+        return output_range
