@@ -66,13 +66,13 @@ class GeotiffDataset:
         ds = self.prepare_for_training(ds)
         return ds
 
-    def decode_geotiff(self, image_path):
+    def decode_geotiff(self, image_path, ms_or_pan):
         image_path = pathlib.Path(image_path.numpy().decode())
         with rasterio.open(image_path) as src:
             img = src.read()
         img = rasterio.plot.reshape_as_image(img)  # from channels first to channels last
 
-        if self.band_selection_bool:
+        if self.band_selection_bool and ms_or_pan == 'ms':
             img = select_bands(img, self.band_selection)
 
         img = input_scaler(img,
@@ -89,9 +89,9 @@ class GeotiffDataset:
         # img_string_UID = tf.strings.split(ms_tile_path, os.sep)[-3]
         # tile_UID = tf.strings.split(tf.strings.split(ms_tile_path, os.sep)[-1], '.')[0]
 
-        ms_img = tf.py_function(self.decode_geotiff, [ms_tile_path], [tf.float32], name='decode_geotiff_ms')
+        ms_img = tf.py_function(self.decode_geotiff, [ms_tile_path, 'ms'], [tf.float32], name='decode_geotiff_ms')
         pan_tile_path = tf.strings.regex_replace(ms_tile_path, '\\\\ms\\\\', '\\\\pan\\\\')
-        pan_img = tf.py_function(self.decode_geotiff, [pan_tile_path], [tf.float32], name='decode_geotiff_pan')
+        pan_img = tf.py_function(self.decode_geotiff, [pan_tile_path, 'pan'], [tf.float32], name='decode_geotiff_pan')
 
         # Removing first axis as this will create problems when batching later
         ms_img = tf.squeeze(ms_img, [0])

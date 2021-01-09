@@ -357,7 +357,7 @@ def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, stretch=True, sensor='
 
 def select_bands(imgs, band_indices):
     # Slice out the indices in question (in the sequence provided)
-    return np.take(imgs, band_indices, -1)
+    return np.take(imgs, band_indices, axis=-1)
 
 
 def plot_subplot(ax, img, title, gray=False):
