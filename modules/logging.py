@@ -14,12 +14,16 @@ class EsrganLogger:
                  models_save_dir='logs/models/',
                  save_weights_only=True,
                  log_train_images=False,
+                 model=None,
                  n_train_image_batches=1,
                  train_image_dataset=None,
                  log_val_images=False,
                  n_val_image_batches=1,
                  val_image_dataset=None,  # This can also be dict with different sensors
-                 model=None
+                 log_val_secondary_sensor=False,
+                 val_second_dataset=None,
+                 val_second_name='GE01',
+                 val_second_steps=10
                  ):
         self.callbacks = []
         self.model_name = model_name
@@ -47,7 +51,26 @@ class EsrganLogger:
                 self.n_train_image_batches = n_train_image_batches
                 self.n_train_images = 0
                 self.train_file_writer, self.train_image_batches = self.build_train_image_logger()
-                self.callbacks.append(tf.keras.callbacks.LambdaCallback(on_epoch_begin=self.train_image_logger))
+                self.callbacks.append(tf.keras.callbacks.LambdaCallback(on_epoch_end=self.train_image_logger,
+                                                                        on_train_begin=self.train_image_logger_start))
+
+            if log_val_secondary_sensor:
+                self.val_second_dataset = val_second_dataset
+                self.val_second_name = val_second_name
+                self.val_second_steps = val_second_steps
+                self.val2_file_writer = tf.summary.create_file_writer(
+                    self.log_dir.joinpath('val-' + self.val_second_name).as_posix())
+                self.callbacks.append(MultipleValSetsCallback(ds_val_dict=self.val_second_dataset,
+                                                              steps=self.val_second_steps,
+                                                              log_dir=self.log_dir))
+
+        # self.custom_file_writer = tf.summary.create_file_writer(self.log_dir.joinpath('train').as_posix())
+        # self.callbacks.append(tf.keras.callbacks.LambdaCallback(on_epoch_end=self.silly_metric))
+        self.ds_val = val_image_dataset
+
+    # def silly_metric(self, epoch, logs=None):
+    #     with self.custom_file_writer.as_default():
+    #         tf.summary.scalar('silly_metric', data=-18.18, step=epoch)
 
     def build_train_image_logger(self):
         train_file_writer = tf.summary.create_file_writer(self.log_dir.joinpath('train').as_posix())
@@ -60,23 +83,39 @@ class EsrganLogger:
         print(self.n_train_images, 'train images will be logged at each epoch')
         return train_file_writer, train_image_batches
 
-    def train_image_logger(self, epoch, logs):
+    def train_image_logger_start(self, logs=None):
+        lr, hr = self.lr_hr_sr(predict_sr=False)
+        with self.train_file_writer.as_default():
+            # LR and HR only need to be written on first epoch
+            tf.summary.image('train-LR(MS)', lr, step=-1, max_outputs=self.n_train_images)
+            tf.summary.image('train-HR(PAN)', hr, step=-1, max_outputs=self.n_train_images)
+        return self.train_image_logger(-1, logs=logs)
+
+    def train_image_logger(self, epoch, logs=None):
+        lr, hr, sr = self.lr_hr_sr(predict_sr=True)
+        with self.train_file_writer.as_default():
+            # SR written every epoch
+            tf.summary.image('train-SR', sr, step=epoch, max_outputs=self.n_train_images)
+
+    def lr_hr_sr(self, predict_sr=True):
         lr, hr, sr = [], [], []
         for batch in self.train_image_batches:
             lr.append(stretch_batch(ms_to_rgb_batch(batch[0])))
             hr.append(stretch_batch(batch[1]))
-            sr.append(stretch_batch(self.model.predict(batch)))
+            if predict_sr:
+                sr.append(stretch_batch(self.model.predict(batch)))
         # From list to ndarrays
         lr = np.concatenate(lr, axis=0)
         hr = np.concatenate(hr, axis=0)
-        sr = np.concatenate(sr, axis=0)
-        assert lr.shape[0] == hr.shape[0] == sr.shape[0] == self.n_train_images
-        with self.train_file_writer.as_default():
-            # LR and HR only need to be written on first epoch
-            tf.summary.image('train-LR(MS)', lr, step=0, max_outputs=self.n_train_images)
-            tf.summary.image('train-HR(PAN)', hr, step=0, max_outputs=self.n_train_images)
-            # SR written every epoch
-            tf.summary.image('train-SR', sr, step=epoch, max_outputs=self.n_train_images)
+        if predict_sr:
+            sr = np.concatenate(sr, axis=0)
+        assert lr.shape[0] == hr.shape[0] == self.n_train_images
+        if predict_sr:
+            assert sr.shape[0] == self.n_train_images
+        if predict_sr:
+            return lr, hr, sr
+        else:
+            return lr, hr
 
     def build_tb_callback(self):
         timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -96,7 +135,8 @@ class EsrganLogger:
     def build_checkpoint_callback(self):
         filepath = self.model_save_dir.joinpath(self.model_name)
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath=filepath.as_posix() + '-{epoch:02d}-{val_loss:.6f}.h5',
+            # filepath=filepath.as_posix() + '-{epoch:02d}-{val_loss:.6f}.h5',
+            filepath=filepath.as_posix() + '-{epoch:02d}.h5',
             monitor="val_loss",
             verbose=0,
             save_best_only=False,
@@ -108,3 +148,20 @@ class EsrganLogger:
 
     def get_callbacks(self):
         return self.callbacks
+
+
+class MultipleValSetsCallback(tf.keras.callbacks.Callback):
+    def __init__(self, ds_val_dict, steps, log_dir):
+        super(SecondValidationSetCallback, self).__init__()
+        self.ds_val_dict = ds_val_dict
+        self.steps = steps
+        self.log_dir = log_dir
+
+    def on_epoch_end(self, epoch, logs=None):
+        for ds_val_name, ds_val in self.ds_val_dict.items():
+            val_file_writer = tf.summary.create_file_writer(
+                self.log_dir.joinpath('val-' + ds_val_name).as_posix())
+            metrics = self.model.evaluate(ds_val, steps=self.steps, return_dict=True, verbose=0)
+            with val_file_writer.as_default():
+                for metric_name, metric_value in metrics.items():
+                    tf.summary.scalar('epoch_' + metric_name, data=metric_value, step=epoch)
