@@ -13,17 +13,14 @@ class EsrganLogger:
                  save_models=True,
                  models_save_dir='logs/models/',
                  save_weights_only=True,
+                 validate=True,
+                 val_steps=10,
+                 ds_val_dict=None,  # dict of dataset(s)
                  log_train_images=False,
-                 model=None,
                  n_train_image_batches=1,
-                 train_image_dataset=None,
+                 ds_train_dict=None,  # dict of dataset(s)
                  log_val_images=False,
-                 n_val_image_batches=1,
-                 val_image_dataset=None,  # This can also be dict with different sensors
-                 log_val_secondary_sensor=False,
-                 val_second_dataset=None,
-                 val_second_name='GE01',
-                 val_second_steps=10
+                 n_val_image_batches=1
                  ):
         self.callbacks = []
         self.model_name = model_name
@@ -43,79 +40,28 @@ class EsrganLogger:
             self.tensorboard_logs_dir.mkdir(parents=True, exist_ok=True)
             self.log_dir = self.build_tb_callback()
 
-            if log_train_images or log_val_images:
-                self.model = model
-
-            if log_train_images:
-                self.ds_train = train_image_dataset
-                self.n_train_image_batches = n_train_image_batches
-                self.n_train_images = 0
-                self.train_file_writer, self.train_image_batches = self.build_train_image_logger()
-                self.callbacks.append(tf.keras.callbacks.LambdaCallback(on_epoch_end=self.train_image_logger,
-                                                                        on_train_begin=self.train_image_logger_start))
-
-            if log_val_secondary_sensor:
-                self.val_second_dataset = val_second_dataset
-                self.val_second_name = val_second_name
-                self.val_second_steps = val_second_steps
-                self.val2_file_writer = tf.summary.create_file_writer(
-                    self.log_dir.joinpath('val-' + self.val_second_name).as_posix())
-                self.callbacks.append(MultipleValSetsCallback(ds_val_dict=self.val_second_dataset,
-                                                              steps=self.val_second_steps,
+            if validate:
+                self.ds_val_dict = ds_val_dict
+                self.val_steps = val_steps
+                self.callbacks.append(MultipleValSetsCallback(ds_val_dict=self.ds_val_dict,
+                                                              steps=self.val_steps,
                                                               log_dir=self.log_dir))
+            if log_train_images:
+                self.ds_train_dict = ds_train_dict
+                self.n_train_image_batches = n_train_image_batches
+                self.callbacks.append(LrHrSrImageLogger(ds_dict=self.ds_train_dict,
+                                                        log_dir=self.log_dir,
+                                                        n_batches=self.n_train_image_batches,
+                                                        train_val='train',
+                                                        write_ds_name=False))
+            if log_val_images:
+                self.n_val_image_batches = n_val_image_batches
+                self.callbacks.append(LrHrSrImageLogger(ds_dict=self.ds_val_dict,
+                                                        log_dir=self.log_dir,
+                                                        n_batches=self.n_val_image_batches,
+                                                        train_val='val',
+                                                        write_ds_name=True))
 
-        # self.custom_file_writer = tf.summary.create_file_writer(self.log_dir.joinpath('train').as_posix())
-        # self.callbacks.append(tf.keras.callbacks.LambdaCallback(on_epoch_end=self.silly_metric))
-        self.ds_val = val_image_dataset
-
-    # def silly_metric(self, epoch, logs=None):
-    #     with self.custom_file_writer.as_default():
-    #         tf.summary.scalar('silly_metric', data=-18.18, step=epoch)
-
-    def build_train_image_logger(self):
-        train_file_writer = tf.summary.create_file_writer(self.log_dir.joinpath('train').as_posix())
-        train_image_batches = []
-        for i, batch in enumerate(self.ds_train):
-            if i == self.n_train_image_batches:
-                break
-            self.n_train_images += batch[0].shape[0]
-            train_image_batches.append(batch)
-        print(self.n_train_images, 'train images will be logged at each epoch')
-        return train_file_writer, train_image_batches
-
-    def train_image_logger_start(self, logs=None):
-        lr, hr = self.lr_hr_sr(predict_sr=False)
-        with self.train_file_writer.as_default():
-            # LR and HR only need to be written on first epoch
-            tf.summary.image('train-LR(MS)', lr, step=-1, max_outputs=self.n_train_images)
-            tf.summary.image('train-HR(PAN)', hr, step=-1, max_outputs=self.n_train_images)
-        return self.train_image_logger(-1, logs=logs)
-
-    def train_image_logger(self, epoch, logs=None):
-        lr, hr, sr = self.lr_hr_sr(predict_sr=True)
-        with self.train_file_writer.as_default():
-            # SR written every epoch
-            tf.summary.image('train-SR', sr, step=epoch, max_outputs=self.n_train_images)
-
-    def lr_hr_sr(self, predict_sr=True):
-        lr, hr, sr = [], [], []
-        for batch in self.train_image_batches:
-            lr.append(stretch_batch(ms_to_rgb_batch(batch[0])))
-            hr.append(stretch_batch(batch[1]))
-            if predict_sr:
-                sr.append(stretch_batch(self.model.predict(batch)))
-        # From list to ndarrays
-        lr = np.concatenate(lr, axis=0)
-        hr = np.concatenate(hr, axis=0)
-        if predict_sr:
-            sr = np.concatenate(sr, axis=0)
-        assert lr.shape[0] == hr.shape[0] == self.n_train_images
-        if predict_sr:
-            assert sr.shape[0] == self.n_train_images
-        if predict_sr:
-            return lr, hr, sr
-        else:
-            return lr, hr
 
     def build_tb_callback(self):
         timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -148,6 +94,86 @@ class EsrganLogger:
 
     def get_callbacks(self):
         return self.callbacks
+
+
+class LrHrSrImageLogger(tf.keras.callbacks.Callback):
+    def __init__(self, ds_dict, log_dir, n_batches, train_val='train', write_ds_name=True):
+        super(LrHrSrImageLogger, self).__init__()
+        self.ds_dict = ds_dict
+        self.log_dir = log_dir
+        self.n_batches = n_batches
+        self.train_val = train_val
+        self.write_ds_name = write_ds_name
+        self.batches = {}
+        self.lr = {}
+        self.hr = {}
+        self.sr = {}
+        self.n_images = {}
+        self.lr_hr()
+
+    def lr_hr(self):
+        for ds_name, ds in self.ds_dict.items():
+            self.n_images = {ds_name: 0}
+            self.batches = {ds_name: []}
+            self.lr = {ds_name: []}
+            self.hr = {ds_name: []}
+            for i, batch in enumerate(ds):
+                if i == self.n_batches:
+                    break
+                self.batches[ds_name].append(batch)  # Save batches in "raw" form to be used when predicting sr
+
+                # Displayable versions of lr+hr
+                # TODO: Fix 'GE01' hack!
+                self.lr[ds_name].append(stretch_batch(ms_to_rgb_batch(batch[0], sensor='GE01')))
+                self.hr[ds_name].append(stretch_batch(batch[1]))
+
+                self.n_images[ds_name] += batch[0].shape[0]  # Count images
+
+            # From list to ndarrays (convenient when writing with tf.summary.image)
+            self.lr[ds_name] = np.concatenate(self.lr[ds_name], axis=0)
+            self.hr[ds_name] = np.concatenate(self.hr[ds_name], axis=0)
+
+            print(self.n_images[ds_name], 'images from', ds_name, 'will be logged at each epoch')
+
+    def on_train_begin(self, logs=None):
+        for ds_name in self.lr.keys():
+            if self.write_ds_name:
+                subdir = self.train_val + '-' + ds_name
+            else:
+                subdir = self.train_val
+            file_writer = tf.summary.create_file_writer(self.log_dir.joinpath(subdir).as_posix())
+            with file_writer.as_default():
+                # step=-1 to indicate images before training
+                tf.summary.image(self.train_val + '-LR(MS)',
+                                 self.lr[ds_name],
+                                 step=-1,
+                                 max_outputs=self.n_images[ds_name])
+                tf.summary.image(self.train_val + '-HR(PAN)',
+                                 self.hr[ds_name],
+                                 step=-1,
+                                 max_outputs=self.n_images[ds_name])
+
+    def on_epoch_end(self, epoch, logs=None):
+        for ds_name, batches in self.batches.items():
+            self.sr = {ds_name: []}
+            for batch in batches:
+                # Predict SR image and append a stretched version (good for display) in list
+                self.sr[ds_name].append(stretch_batch(self.model.predict(batch)))
+
+            # From list to ndarray (convenient when writing with tf.summary.image)
+            self.sr[ds_name] = np.concatenate(self.sr[ds_name], axis=0)
+
+            if self.write_ds_name:
+                subdir = self.train_val + '-' + ds_name
+            else:
+                subdir = self.train_val
+            file_writer = tf.summary.create_file_writer(self.log_dir.joinpath(subdir).as_posix())
+            with file_writer.as_default():
+                # step=-1 to indicate images before training
+                tf.summary.image(self.train_val + '-SR',
+                                 self.sr[ds_name],
+                                 step=epoch,
+                                 max_outputs=self.n_images[ds_name])
 
 
 class MultipleValSetsCallback(tf.keras.callbacks.Callback):
