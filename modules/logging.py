@@ -152,7 +152,7 @@ class EsrganLogger:
 
 class MultipleValSetsCallback(tf.keras.callbacks.Callback):
     def __init__(self, ds_val_dict, steps, log_dir):
-        super(SecondValidationSetCallback, self).__init__()
+        super(MultipleValSetsCallback, self).__init__()
         self.ds_val_dict = ds_val_dict
         self.steps = steps
         self.log_dir = log_dir
