@@ -492,18 +492,37 @@ class EsrganModel(tf.keras.Model):
 
 
 def build_esrgan_model(pretrain_weights_path,
-                       n_channels_in=4, n_channels_out=1, n_filters=64, n_blocks=23, pan_shape=(128, 128, 1),
-                       G_lr=0.00005, D_lr=0.00005, G_beta_1=0.9, G_beta_2=0.999, D_beta_1=0.9, D_beta_2=0.999,
-                       G_loss_pixel_w=0.01, G_loss_pixel_l1_l2='l1',
-                       G_loss_percep_w=1.0, G_loss_percep_l1_l2='l1', G_loss_percep_layer=54,
+                       n_channels_in=4,
+                       n_channels_out=1,
+                       n_filters=64,
+                       n_blocks=23,
+                       pan_shape=(128, 128, 1),
+                       G_lr=0.00005,
+                       D_lr=0.00005,
+                       G_beta_1=0.9,
+                       G_beta_2=0.999,
+                       D_beta_1=0.9,
+                       D_beta_2=0.999,
+                       G_loss_pixel_w=0.01,
+                       G_loss_pixel_l1_l2='l1',
+                       G_loss_percep_w=1.0,
+                       G_loss_percep_l1_l2='l1',
+                       G_loss_percep_layer=54,
                        G_loss_percep_before_act=True,
                        G_loss_generator_w=0.005,
-                       metric_reg=False, metric_ma=False, metric_niqe=False, matlab_wd_path='modules/matlab',
-                       scale_mean=0, scaled_range=2.0, shave_width=4):
+                       metric_reg=False,
+                       metric_ma=False,
+                       metric_niqe=False,
+                       matlab_wd_path='modules/matlab',
+                       scale_mean=0,
+                       scaled_range=2.0,
+                       shave_width=4):
     generator = build_generator(pretrain_or_gan='gan',
-                                n_channels_in=n_channels_in, n_channels_out=n_channels_out,
+                                n_channels_in=n_channels_in,
+                                n_channels_out=n_channels_out,
                                 height_width_in=None,  # None will make network image size agnostic
-                                n_filters=n_filters, n_blocks=n_blocks)
+                                n_filters=n_filters,
+                                n_blocks=n_blocks)
     # Loading pre-trained weights from pretrain_model
     if isinstance(pretrain_weights_path, str):
         pretrain_weights_path = pathlib.Path(pretrain_weights_path)
