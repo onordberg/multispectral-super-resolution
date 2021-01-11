@@ -172,7 +172,6 @@ class LrHrSrImageCallback(tf.keras.callbacks.Callback):
                 else:
                     sensor = ds_name
                     rgb_bands = None
-                print(sensor, rgb_bands)
                 self.lr[ds_name].append(stretch_batch(ms_to_rgb_batch(batch[0],
                                                                       sensor=sensor,
                                                                       rgb_bands=rgb_bands)))
