@@ -544,5 +544,5 @@ def build_esrgan_model(pretrain_weights_path,
                               metric_reg=metric_reg, metric_ma=metric_ma, metric_niqe=metric_niqe,
                               matlab_wd_path=matlab_wd_path, scale_mean=scale_mean, scaled_range=scaled_range,
                               shave_width=shave_width)
-    gan_model.built = True  # TODO: Do this properly by implementing all abstract classes in EsrganModel
+    #gan_model.built = True  # TODO: Do this properly by implementing all abstract classes in EsrganModel
     return gan_model
