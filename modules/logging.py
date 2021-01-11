@@ -24,6 +24,7 @@ class EsrganLogger:
                  ):
         self.callbacks = []
         self.model_name = model_name
+        self.timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 
         if save_models:
             self.model_save_dir = models_save_dir
@@ -49,23 +50,21 @@ class EsrganLogger:
             if log_train_images:
                 self.ds_train_dict = ds_train_dict
                 self.n_train_image_batches = n_train_image_batches
-                self.callbacks.append(LrHrSrImageLogger(ds_dict=self.ds_train_dict,
-                                                        log_dir=self.log_dir,
-                                                        n_batches=self.n_train_image_batches,
-                                                        train_val='train',
-                                                        write_ds_name=False))
+                self.callbacks.append(LrHrSrImageCallback(ds_dict=self.ds_train_dict,
+                                                          log_dir=self.log_dir,
+                                                          n_batches=self.n_train_image_batches,
+                                                          train_val='train',
+                                                          write_ds_name=False))
             if log_val_images:
                 self.n_val_image_batches = n_val_image_batches
-                self.callbacks.append(LrHrSrImageLogger(ds_dict=self.ds_val_dict,
-                                                        log_dir=self.log_dir,
-                                                        n_batches=self.n_val_image_batches,
-                                                        train_val='val',
-                                                        write_ds_name=True))
-
+                self.callbacks.append(LrHrSrImageCallback(ds_dict=self.ds_val_dict,
+                                                          log_dir=self.log_dir,
+                                                          n_batches=self.n_val_image_batches,
+                                                          train_val='val',
+                                                          write_ds_name=True))
 
     def build_tb_callback(self):
-        timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
-        log_dir = self.tensorboard_logs_dir.joinpath(self.model_name + '_' + timestamp)
+        log_dir = self.tensorboard_logs_dir.joinpath(self.model_name + '_' + self.timestamp)
         tb_callback = tf.keras.callbacks.TensorBoard(
             log_dir=log_dir.as_posix(),
             histogram_freq=0,
@@ -79,14 +78,15 @@ class EsrganLogger:
         return log_dir
 
     def build_checkpoint_callback(self):
-        filepath = self.model_save_dir.joinpath(self.model_name)
+        save_dir = self.model_save_dir.joinpath(self.model_name + '_' + self.timestamp)
+        save_dir.mkdir(parents=True, exist_ok=True)
+        filepath = save_dir.joinpath(self.model_name)
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
-            # filepath=filepath.as_posix() + '-{epoch:02d}-{val_loss:.6f}.h5',
             filepath=filepath.as_posix() + '-{epoch:02d}.h5',
-            monitor="val_loss",
+            monitor="loss",
             verbose=0,
             save_best_only=False,
-            save_weights_only=True,
+            save_weights_only=self.save_weights_only,
             mode='auto',
             save_freq='epoch',
             options=None)
@@ -96,9 +96,9 @@ class EsrganLogger:
         return self.callbacks
 
 
-class LrHrSrImageLogger(tf.keras.callbacks.Callback):
+class LrHrSrImageCallback(tf.keras.callbacks.Callback):
     def __init__(self, ds_dict, log_dir, n_batches, train_val='train', write_ds_name=True):
-        super(LrHrSrImageLogger, self).__init__()
+        super(LrHrSrImageCallback, self).__init__()
         self.ds_dict = ds_dict
         self.log_dir = log_dir
         self.n_batches = n_batches
@@ -113,10 +113,10 @@ class LrHrSrImageLogger(tf.keras.callbacks.Callback):
 
     def lr_hr(self):
         for ds_name, ds in self.ds_dict.items():
-            self.n_images = {ds_name: 0}
-            self.batches = {ds_name: []}
-            self.lr = {ds_name: []}
-            self.hr = {ds_name: []}
+            self.n_images[ds_name] = 0
+            self.batches[ds_name] = []
+            self.lr[ds_name] = []
+            self.hr[ds_name] = []
             for i, batch in enumerate(ds):
                 if i == self.n_batches:
                     break
@@ -133,35 +133,44 @@ class LrHrSrImageLogger(tf.keras.callbacks.Callback):
             self.lr[ds_name] = np.concatenate(self.lr[ds_name], axis=0)
             self.hr[ds_name] = np.concatenate(self.hr[ds_name], axis=0)
 
-            print(self.n_images[ds_name], 'images from', ds_name, 'will be logged at each epoch')
+            print(self.n_images[ds_name], 'images from', self.train_val + '-' + ds_name, 'will be logged at each epoch')
+
+    def predict_sr(self, batches):
+        sr = []
+        for batch in batches:
+            # Predict SR image and append a stretched version (good for display) in list
+            sr.append(stretch_batch(self.model.predict(batch)))
+
+        # From list to ndarray (convenient when writing with tf.summary.image)
+        sr = np.concatenate(sr, axis=0)
+        return sr
 
     def on_train_begin(self, logs=None):
         for ds_name in self.lr.keys():
+            self.sr[ds_name] = self.predict_sr(self.batches[ds_name])
             if self.write_ds_name:
                 subdir = self.train_val + '-' + ds_name
             else:
                 subdir = self.train_val
             file_writer = tf.summary.create_file_writer(self.log_dir.joinpath(subdir).as_posix())
             with file_writer.as_default():
-                # step=-1 to indicate images before training
                 tf.summary.image(self.train_val + '-LR(MS)',
                                  self.lr[ds_name],
-                                 step=-1,
+                                 step=0,
                                  max_outputs=self.n_images[ds_name])
                 tf.summary.image(self.train_val + '-HR(PAN)',
                                  self.hr[ds_name],
+                                 step=0,
+                                 max_outputs=self.n_images[ds_name])
+                # step=-1 to indicate SR images before training:
+                tf.summary.image(self.train_val + '-SR',
+                                 self.sr[ds_name],
                                  step=-1,
                                  max_outputs=self.n_images[ds_name])
 
     def on_epoch_end(self, epoch, logs=None):
         for ds_name, batches in self.batches.items():
-            self.sr = {ds_name: []}
-            for batch in batches:
-                # Predict SR image and append a stretched version (good for display) in list
-                self.sr[ds_name].append(stretch_batch(self.model.predict(batch)))
-
-            # From list to ndarray (convenient when writing with tf.summary.image)
-            self.sr[ds_name] = np.concatenate(self.sr[ds_name], axis=0)
+            self.sr[ds_name] = self.predict_sr(batches)
 
             if self.write_ds_name:
                 subdir = self.train_val + '-' + ds_name
@@ -169,7 +178,6 @@ class LrHrSrImageLogger(tf.keras.callbacks.Callback):
                 subdir = self.train_val
             file_writer = tf.summary.create_file_writer(self.log_dir.joinpath(subdir).as_posix())
             with file_writer.as_default():
-                # step=-1 to indicate images before training
                 tf.summary.image(self.train_val + '-SR',
                                  self.sr[ds_name],
                                  step=epoch,
