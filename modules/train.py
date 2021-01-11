@@ -22,8 +22,10 @@ def pretrain_esrgan(generator,
                     n_val_image_batches=1):
 
     logger = EsrganLogger(
+        model=generator,
         model_name=model_name,
         tag=tag,
+        pretrain_or_gan='pretrain',
         log_tensorboard=log_tensorboard,
         tensorboard_logs_dir=tensorboard_logs_dir,
         save_models=save_models,
@@ -71,8 +73,10 @@ def gan_train_esrgan(esrgan_model,
                      n_val_image_batches=1):
 
     logger = EsrganLogger(
+        model=esrgan_model,
         model_name=model_name,
         tag=tag,
+        pretrain_or_gan='gan',
         log_tensorboard=log_tensorboard,
         tensorboard_logs_dir=tensorboard_logs_dir,
         save_models=save_models,

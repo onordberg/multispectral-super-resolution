@@ -7,8 +7,10 @@ from modules.image_utils import *
 
 class EsrganLogger:
     def __init__(self,
+                 model,
                  model_name,
                  tag,  # Can be anything and useful for customizations
+                 pretrain_or_gan='pretrain',
                  log_tensorboard=True,
                  tensorboard_logs_dir='logs/tb/',
                  save_models=True,
@@ -26,6 +28,8 @@ class EsrganLogger:
         self.callbacks = []
         self.model_name = model_name
         self.tag = tag
+        self.pretrain_or_gan = pretrain_or_gan
+        self.model = model
         self.timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 
         if save_models:
@@ -34,7 +38,12 @@ class EsrganLogger:
                 self.model_save_dir = pathlib.Path(self.model_save_dir)
             self.model_save_dir.mkdir(parents=True, exist_ok=True)
             self.save_weights_only = save_weights_only
-            self.build_checkpoint_callback()
+            if self.pretrain_or_gan == 'pretrain':
+                self.callbacks.append(self.build_checkpoint_callback())
+            elif pretrain_or_gan == 'gan':
+                self.callbacks.append(SimpleEsrganCheckpoint(model_save_dir=self.model_save_dir,
+                                                             model_name=self.model_name,
+                                                             timestamp=self.timestamp))
 
         if log_tensorboard:
             self.tensorboard_logs_dir = tensorboard_logs_dir
@@ -94,10 +103,26 @@ class EsrganLogger:
             mode='auto',
             save_freq='epoch',
             options=None)
-        self.callbacks.append(cp_callback)
+        return cp_callback
 
     def get_callbacks(self):
         return self.callbacks
+
+
+class SimpleEsrganCheckpoint(tf.keras.callbacks.Callback):
+    def __init__(self, model_save_dir, model_name, timestamp):
+        super(SimpleEsrganCheckpoint, self).__init__()
+        self.model_save_dir = model_save_dir
+        self.model_name = model_name
+        self.timestamp = timestamp
+        self.save_dir = self.model_save_dir.joinpath(self.model_name + '_' + self.timestamp)
+        self.save_dir.mkdir()
+
+    def on_epoch_end(self, epoch, logs=None):
+        filepath = self.save_dir.joinpath(self.model_name + '-G-' + str(epoch) + '.h5')
+        self.model.G.save_weights(filepath)
+        filepath = self.save_dir.joinpath(self.model_name + '-D-' + str(epoch) + '.h5')
+        self.model.D.save_weights(filepath)
 
 
 class LrHrSrImageCallback(tf.keras.callbacks.Callback):
