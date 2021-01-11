@@ -544,5 +544,8 @@ def build_esrgan_model(pretrain_weights_path,
                               metric_reg=metric_reg, metric_ma=metric_ma, metric_niqe=metric_niqe,
                               matlab_wd_path=matlab_wd_path, scale_mean=scale_mean, scaled_range=scaled_range,
                               shave_width=shave_width)
-    #gan_model.built = True  # TODO: Do this properly by implementing all abstract classes in EsrganModel
+
+    # Actually build the graph by calling a dummy batch on the model
+    dummy_batch = tf.zeros((1, 24, 24, n_channels_in), dtype=tf.float32)
+    gan_model(dummy_batch)
     return gan_model
