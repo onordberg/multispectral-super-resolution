@@ -270,33 +270,35 @@ def pansharpen(ms, pan, sensor='WV02', method='brovey', fourth_band='nir',
     return img_out
 
 
-def ms_to_rgb(ms, sensor='WV02'):
-    if sensor == 'WV02':
-        rgb = [np.expand_dims(ms[:, :, 4], -1),
-               np.expand_dims(ms[:, :, 2], -1),
-               np.expand_dims(ms[:, :, 1], -1)]
-    elif sensor == 'GE01':
-        rgb = [np.expand_dims(ms[:, :, 2], -1),
-               np.expand_dims(ms[:, :, 1], -1),
-               np.expand_dims(ms[:, :, 0], -1)]
-    elif sensor == 'WV03_VNIR':
-        rgb = [np.expand_dims(ms[:, :, 1], -1),
-               np.expand_dims(ms[:, :, 2], -1),
-               np.expand_dims(ms[:, :, 3], -1)]
+def ms_to_rgb(ms, sensor='WV02', rgb_bands=None):
+    if sensor == 'WV02' and rgb_bands is None:
+        rgb = (4, 2, 1)
+    elif sensor == 'GE01' and rgb_bands is None:
+        rgb = (2, 1, 0)
+    elif sensor == 'WV03_VNIR' and rgb_bands is None:
+        rgb = (1, 2, 3)
+    elif sensor is None and (isinstance(rgb_bands, list) or isinstance(rgb_bands, tuple)):
+        if not len(rgb_bands) == 3:
+            raise ValueError('rgb_bands must have length 3, not', len(rgb_bands))
+        rgb = (rgb_bands[0], rgb_bands[1], rgb_bands[2])
     else:
-        raise ValueError('Only WV02, GE01 and WV03_VNIR band configurations implemented')
-    rgb = np.concatenate(rgb, axis=2)
-    return rgb
+        raise ValueError('Only WV02, GE01 and WV03_VNIR band configurations implemented.',
+                         'If set to None then rgb_bands must be provided with tuple/list of rgb band indices.')
+    rgb_img = [np.expand_dims(ms[:, :, rgb[0]], -1),
+               np.expand_dims(ms[:, :, rgb[1]], -1),
+               np.expand_dims(ms[:, :, rgb[2]], -1)]
+    rgb_img = np.concatenate(rgb_img, axis=2)
+    return rgb_img
 
 
-def ms_to_rgb_batch(ms_batch, sensor='WV02'):
+def ms_to_rgb_batch(ms_batch, sensor='WV02', rgb_bands=None):
     # TODO: Vectorize to increase efficiency, however it might not be worth it
     dims = len(ms_batch.shape)
     assert dims == 4
     batch_size = ms_batch.shape[0]
     batch_out = np.empty((batch_size, ms_batch.shape[1], ms_batch.shape[2], 3))
     for i in range(batch_size):
-        batch_out[i, :, :, :] = ms_to_rgb(ms_batch[i, :, :, :], sensor=sensor)
+        batch_out[i, :, :, :] = ms_to_rgb(ms_batch[i, :, :, :], sensor=sensor, rgb_bands=rgb_bands)
     return batch_out
 
 
