@@ -8,6 +8,7 @@ from modules.image_utils import *
 class EsrganLogger:
     def __init__(self,
                  model_name,
+                 tag,  # Can be anything and useful for customizations
                  log_tensorboard=True,
                  tensorboard_logs_dir='logs/tb/',
                  save_models=True,
@@ -24,6 +25,7 @@ class EsrganLogger:
                  ):
         self.callbacks = []
         self.model_name = model_name
+        self.tag = tag
         self.timestamp = datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
 
         if save_models:
@@ -54,14 +56,16 @@ class EsrganLogger:
                                                           log_dir=self.log_dir,
                                                           n_batches=self.n_train_image_batches,
                                                           train_val='train',
-                                                          write_ds_name=False))
+                                                          write_ds_name=False,
+                                                          tag=self.tag))
             if log_val_images:
                 self.n_val_image_batches = n_val_image_batches
                 self.callbacks.append(LrHrSrImageCallback(ds_dict=self.ds_val_dict,
                                                           log_dir=self.log_dir,
                                                           n_batches=self.n_val_image_batches,
                                                           train_val='val',
-                                                          write_ds_name=True))
+                                                          write_ds_name=True,
+                                                          tag=self.tag))
 
     def build_tb_callback(self):
         log_dir = self.tensorboard_logs_dir.joinpath(self.model_name + '_' + self.timestamp)
@@ -97,53 +101,20 @@ class EsrganLogger:
 
 
 class LrHrSrImageCallback(tf.keras.callbacks.Callback):
-    def __init__(self, ds_dict, log_dir, n_batches, train_val='train', write_ds_name=True):
+    def __init__(self, ds_dict, log_dir, n_batches, train_val='train', write_ds_name=True, tag=None):
         super(LrHrSrImageCallback, self).__init__()
         self.ds_dict = ds_dict
         self.log_dir = log_dir
         self.n_batches = n_batches
         self.train_val = train_val
         self.write_ds_name = write_ds_name
+        self.tag = tag
         self.batches = {}
         self.lr = {}
         self.hr = {}
         self.sr = {}
         self.n_images = {}
         self.lr_hr()
-
-    def lr_hr(self):
-        for ds_name, ds in self.ds_dict.items():
-            self.n_images[ds_name] = 0
-            self.batches[ds_name] = []
-            self.lr[ds_name] = []
-            self.hr[ds_name] = []
-            for i, batch in enumerate(ds):
-                if i == self.n_batches:
-                    break
-                self.batches[ds_name].append(batch)  # Save batches in "raw" form to be used when predicting sr
-
-                # Displayable versions of lr+hr
-                # TODO: Fix 'GE01' hack!
-                self.lr[ds_name].append(stretch_batch(ms_to_rgb_batch(batch[0], sensor='GE01')))
-                self.hr[ds_name].append(stretch_batch(batch[1]))
-
-                self.n_images[ds_name] += batch[0].shape[0]  # Count images
-
-            # From list to ndarrays (convenient when writing with tf.summary.image)
-            self.lr[ds_name] = np.concatenate(self.lr[ds_name], axis=0)
-            self.hr[ds_name] = np.concatenate(self.hr[ds_name], axis=0)
-
-            print(self.n_images[ds_name], 'images from', self.train_val + '-' + ds_name, 'will be logged at each epoch')
-
-    def predict_sr(self, batches):
-        sr = []
-        for batch in batches:
-            # Predict SR image and append a stretched version (good for display) in list
-            sr.append(stretch_batch(self.model.predict(batch)))
-
-        # From list to ndarray (convenient when writing with tf.summary.image)
-        sr = np.concatenate(sr, axis=0)
-        return sr
 
     def on_train_begin(self, logs=None):
         for ds_name in self.lr.keys():
@@ -182,6 +153,69 @@ class LrHrSrImageCallback(tf.keras.callbacks.Callback):
                                  self.sr[ds_name],
                                  step=epoch,
                                  max_outputs=self.n_images[ds_name])
+
+    def lr_hr(self):
+        for ds_name, ds in self.ds_dict.items():
+            self.n_images[ds_name] = 0
+            self.batches[ds_name] = []
+            self.lr[ds_name] = []
+            self.hr[ds_name] = []
+            for i, batch in enumerate(ds):
+                if i == self.n_batches:
+                    break
+                self.batches[ds_name].append(batch)  # Save batches in "raw" form to be used when predicting sr
+
+                # Custom code needed to handle particulars of experiment-01 since this experiment manipulates the
+                # band config of the ms images:
+                if self.tag[:3] == 'e01':
+                    sensor, rgb_bands = self.experiment_01_rgb_bands(batch[0])
+                    print(sensor, rgb_bands)
+                else:
+                    sensor = ds_name
+                    rgb_bands = None
+                print(sensor, rgb_bands)
+                self.lr[ds_name].append(stretch_batch(ms_to_rgb_batch(batch[0],
+                                                                      sensor=sensor,
+                                                                      rgb_bands=rgb_bands)))
+                self.hr[ds_name].append(stretch_batch(batch[1]))
+
+                self.n_images[ds_name] += batch[0].shape[0]  # Count images
+
+            # From list to ndarrays (convenient when writing with tf.summary.image)
+            self.lr[ds_name] = np.concatenate(self.lr[ds_name], axis=0)
+            self.hr[ds_name] = np.concatenate(self.hr[ds_name], axis=0)
+
+            print(self.n_images[ds_name], 'images from', self.train_val + '-' + ds_name, 'will be logged at each epoch')
+
+    def predict_sr(self, batches):
+        sr = []
+        for batch in batches:
+            # Predict SR image and append a stretched version (good for display) in list
+            sr.append(stretch_batch(self.model.predict(batch)))
+
+        # From list to ndarray (convenient when writing with tf.summary.image)
+        sr = np.concatenate(sr, axis=0)
+        return sr
+
+    @staticmethod
+    def experiment_01_rgb_bands(ms_batch):
+        ms_bands = ms_batch[0].shape[-1]
+        if ms_bands == 8:
+            sensor = 'WV02'
+            rgb_bands = None
+        elif ms_bands == 6:
+            sensor = None
+            rgb_bands = (3, 1, 0)
+        elif ms_bands == 4:
+            sensor = 'GE01'
+            rgb_bands = None
+        elif ms_bands == 3:
+            sensor = None
+            rgb_bands = (2, 1, 0)
+        else:
+            raise ValueError('MS image must have either 8, 6, 4 or 3 bands to be part of experiment-01.',
+                             'Number of MS bands provided:', ms_bands)
+        return sensor, rgb_bands
 
 
 class MultipleValSetsCallback(tf.keras.callbacks.Callback):
