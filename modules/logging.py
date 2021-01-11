@@ -169,7 +169,6 @@ class LrHrSrImageCallback(tf.keras.callbacks.Callback):
                 # band config of the ms images:
                 if self.tag[:3] == 'e01':
                     sensor, rgb_bands = self.experiment_01_rgb_bands(batch[0])
-                    print(sensor, rgb_bands)
                 else:
                     sensor = ds_name
                     rgb_bands = None
