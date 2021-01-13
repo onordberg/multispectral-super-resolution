@@ -277,13 +277,20 @@ def is_img_all_cloud_or_sea(img, model, pred_cutoff=0.95):
         return False
 
 
+def keep_cloud_sea(keep_rate):
+    return random.choices(population=(False, True), weights=(1-keep_rate, keep_rate), k=1)[0]
+
+
 def generate_tiles(row,
                    save_dir,
                    ms_tile_size=32,
                    sr_factor=4,
                    by_partition=True,
                    ms_tile_size_train_val_test=(32, 32, 32),
-                   cloud_sea_removal=False, cloud_sea_model=None, cloud_sea_pred_cutoff=0.90):
+                   cloud_sea_removal=False,
+                   cloud_sea_model=None,
+                   cloud_sea_pred_cutoff=0.95,
+                   cloud_sea_keep_rate=0.1):
     if isinstance(save_dir, str):
         save_dir = pathlib.Path(save_dir)
 
@@ -314,6 +321,7 @@ def generate_tiles(row,
 
     count_border_pixel = 0
     count_cloud_sea = 0
+    count_cloud_sea_keep = 0
     tile_count = 0
 
     with rasterio.open(row['ms_tif_path'], 'r') as ms_src, rasterio.open(row['pan_tif_path'], 'r') as pan_src:
@@ -337,21 +345,42 @@ def generate_tiles(row,
                 pan_tile = pan_src.read(window=pan_win)
                 pan_win_transform = pan_src.window_transform(pan_win)
 
-                if cloud_sea_removal:
-                    img_is_all_cloud_or_sea = is_img_all_cloud_or_sea(cloudsea_preprocess(pan_tile),
-                                                                      cloud_sea_model,
-                                                                      pred_cutoff=cloud_sea_pred_cutoff)
+                write_to_disk = False
+                resample = False
                 if is_border_pixel_in_image(ms_tile):
                     count_border_pixel += 1
-                elif is_border_pixel_in_image(pan_tile):
+                    resample = True
+                    write_to_disk = False
+                elif is_border_pixel_in_image(pan_tile):  # elif so that the tile is not counted twice
                     count_border_pixel += 1
-                elif cloud_sea_removal and img_is_all_cloud_or_sea:
-                    count_cloud_sea += 1
-                    # tile_filename = str('cloudsea_' + str(i).zfill(5) + '.tif')
-                    # break without saving to disk:
-                    break
-                else:
-                    # else == write to disk
+                    resample = True
+                    write_to_disk = False
+
+                if not resample:
+                    if cloud_sea_removal:
+                        if is_img_all_cloud_or_sea(cloudsea_preprocess(pan_tile),
+                                                   cloud_sea_model,
+                                                   pred_cutoff=cloud_sea_pred_cutoff):
+                            count_cloud_sea += 1
+                            # Do we keep or discard the tile?
+                            if isinstance(cloud_sea_keep_rate, float) and (0 <= cloud_sea_keep_rate <= 1):
+                                if keep_cloud_sea(keep_rate=cloud_sea_keep_rate):
+                                    count_cloud_sea_keep += 1
+                                    write_to_disk = True
+                                    resample = False
+                                else:
+                                    write_to_disk = False
+                                    resample = False  # equivalent to discarding of tile
+                            else:
+                                raise ValueError('cloud_sea_keep_rate must be float in range [0, 1]')
+                        else:  # when the tile has been classified as NOT being only cloud and/or sea
+                            write_to_disk = True
+                            resample = False
+                    else:  # the case where no cloud_sea_removal is done
+                        write_to_disk = True
+                        resample = False
+
+                if write_to_disk:
                     with rasterio.open(
                             pathlib.Path(ms_dir, tile_filename),
                             'w',
@@ -376,11 +405,13 @@ def generate_tiles(row,
                             transform=pan_win_transform) as pan_dst:
                         pan_dst.write(pan_tile)
                     tile_count += 1
+                    break  # Tile written to disk -> Stop the loop
+                if not resample:  # equivalent to discarding of tile
                     break
-
     print('Number of tiles discarded and resampled due to border pixels:', count_border_pixel)
     if cloud_sea_removal:
-        print('Number of tiles discarded due to only clouds or sea:', count_cloud_sea)
+        print('Number of tiles classified as being only clouds or sea:', count_cloud_sea)
+        print('Number of tiles kept despite being only clouds or sea:', count_cloud_sea_keep)
     print('Tiles actually generated to disk:', tile_count)
 
     # Storing both allocated and actual number of tiles in the meta dataframe
@@ -395,7 +426,10 @@ def generate_all_tiles(meta, save_dir,
                        sr_factor=4,
                        by_partition=True,
                        ms_tile_size_train_val_test=(32, 32, 32),
-                       cloud_sea_removal=True, cloud_sea_weights_path=None, cloud_sea_pred_cutoff=0.95,
+                       cloud_sea_removal=True,
+                       cloud_sea_weights_path=None,
+                       cloud_sea_pred_cutoff=0.95,
+                       cloud_sea_keep_rate=0.1,
                        save_meta_to_disk=True):
     cloud_sea_model = None
     if cloud_sea_removal:
@@ -422,7 +456,9 @@ def generate_all_tiles(meta, save_dir,
                       by_partition=by_partition,
                       ms_tile_size_train_val_test=ms_tile_size_train_val_test,
                       cloud_sea_removal=cloud_sea_removal,
-                      cloud_sea_model=cloud_sea_model, cloud_sea_pred_cutoff=cloud_sea_pred_cutoff)
+                      cloud_sea_model=cloud_sea_model,
+                      cloud_sea_pred_cutoff=cloud_sea_pred_cutoff,
+                      cloud_sea_keep_rate=cloud_sea_keep_rate)
     print('Tile generation finished')
 
     if save_meta_to_disk:
