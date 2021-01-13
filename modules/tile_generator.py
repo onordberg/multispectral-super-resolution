@@ -110,8 +110,12 @@ def resize_all_sat_imgs_to_new_pixel_size(meta, save_dir, new_pixel_size_pan=(1.
                sr_factor=sr_factor, resampling=resampling)
 
 
-def allocate_tiles_by_expected(meta, pan_tile_size=128, tiles_per_m2=1.0, override_pan_pixel_size=False,
-                               by_partition=False, tiles_per_m2_train_val_test=(1.0, 1.0, 1.0),
+def allocate_tiles_by_expected(meta,
+                               pan_tile_size=128,
+                               tiles_per_m2=1.0,
+                               override_pan_pixel_size=False,
+                               by_partition=False,
+                               tiles_per_m2_train_val_test=(1.0, 1.0, 1.0),
                                pan_tile_size_train_val_test=(128, 128, 128),
                                new_column_name='n_tiles'):
     counts_df = pd.DataFrame(index=meta.index)
@@ -135,11 +139,14 @@ def allocate_tiles_by_expected(meta, pan_tile_size=128, tiles_per_m2=1.0, overri
         for i, p in enumerate(['train', 'val', 'test']):
             meta_p = meta.loc[meta['train_val_test'] == p, :]
             counts_df_p = counts_df.loc[counts_df['train_val_test'] == p, :].copy()
+
+            # The actual calculation of number of tiles
             counts_df_p[new_column_name] = ((tiles_per_m2_train_val_test[i] * meta_p['area_m2'])
                                             / (counts_df['pan_pixel_size'] ** 2 * pan_tile_size_train_val_test[i] ** 2))
             counts_df.update(counts_df_p)
 
     else:
+        # The actual calculation of number of tiles
         counts_df[new_column_name] = ((tiles_per_m2 * meta['area_m2'])
                                       / (counts_df['pan_pixel_size'] ** 2 * pan_tile_size ** 2))
 
