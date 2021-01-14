@@ -134,6 +134,7 @@ class LrHrSrImageCallback(tf.keras.callbacks.Callback):
         self.train_val = train_val
         self.write_ds_name = write_ds_name
         self.tag = tag
+        # self.png = png
         self.batches = {}
         self.lr = {}
         self.hr = {}
@@ -163,6 +164,10 @@ class LrHrSrImageCallback(tf.keras.callbacks.Callback):
                                  self.sr[ds_name],
                                  step=-1,
                                  max_outputs=self.n_images[ds_name])
+            # if self.png:
+            #     png_dir = self.log_dir.joinpath(subdir)
+            #     png_dir = png_dir.joinpath('png')
+            #     png_dir.mkdir(exist_ok=True, parents=True)
 
     def on_epoch_end(self, epoch, logs=None):
         for ds_name, batches in self.batches.items():
