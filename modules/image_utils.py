@@ -6,9 +6,78 @@ import math
 import json
 import rasterio
 import rasterio.plot
+import rasterio.merge
+import rasterio.windows
 import tensorflow as tf
 
 from modules.helpers import *
+
+
+def tile_density_map(tiles_dir,
+                     meta_row,
+                     pan_or_ms='pan',
+                     density_dtype='uint8',
+                     write_to_disk=True,
+                     write_dir=None,
+                     write_filename=None):
+    if isinstance(tiles_dir, str):
+        tiles_dir = pathlib.Path(tiles_dir)
+
+    tiles_dir = tiles_dir.joinpath(meta_row['train_val_test'])
+    tiles_dir = tiles_dir.joinpath(meta_row.name)
+    if not tiles_dir.is_dir():
+        raise ValueError('image_dir not found in tile_dir')
+    tiles_dir = tiles_dir.joinpath(pan_or_ms)
+    if pan_or_ms == 'pan':
+        image_path = meta_row['pan_tif_path']
+    elif pan_or_ms == 'ms':
+        raise NotImplementedError('Density map of ms images not yet implemented')
+        # image_path = meta_row['ms_tif_path']
+    else:
+        raise ValueError('pan_or_ms bust be either "pan" or "ms"')
+    image_path = pathlib.Path(image_path)
+    tiles = list(tiles_dir.glob('**/*.tif'))
+
+    with rasterio.open(image_path, 'r') as img_ds:
+        base_img = img_ds.read()
+
+        # Set the output dtype to uint8
+        out_profile = img_ds.profile
+        out_profile['dtype'] = density_dtype
+        density = np.zeros_like(base_img, dtype=out_profile['dtype'])
+
+        for tile in tiles:
+            # Open a tile .tif, extract its bounds in its crs coordinate system, transform these to the local coordinate
+            # system of the base image ndarray, convert the local coords to python slices and add a tile of ones to the
+            # density map using these slices
+            with rasterio.open(tile, 'r') as tile_ds:
+                b = tile_ds.bounds
+                win = rasterio.windows.from_bounds(b[0], b[1], b[2], b[3],
+                                                   transform=out_profile['transform'])
+                s = win.toslices()
+                # For some reason slices are float and thus incompatible with ndarray slicing -> cast to int:
+                s = slice_float_to_int(s[0]), slice_float_to_int(s[1])
+
+                tile_density = np.ones_like(tile_ds.read(), dtype=out_profile['dtype'])
+                density[:, s[0], s[1]] += tile_density
+
+        if write_to_disk:
+            if isinstance(write_dir, str):
+                write_dir = pathlib.Path(write_dir)
+            write_dir.mkdir(exist_ok=True, parents=True)
+            write_path = write_dir.joinpath(write_filename)
+
+            # Forcing .tif extension:
+            if write_path.suffix == '':  # If no extension add .tif
+                write_path = write_path.with_suffix('.tif')
+            elif not write_path.suffix == '.tif':  # If argument is some other extension throw an error
+                raise NotImplementedError('Only .tif output is implemented.', write_path)
+
+            with rasterio.open(write_path, 'w', **out_profile) as dst:
+                dst.write(density)
+                print('Density map written to disk @', write_path.as_posix())
+    density = density[0, :, :]  # Remove first channel
+    return density
 
 
 def get_max_uint_from_bit_depth(bit_depth):

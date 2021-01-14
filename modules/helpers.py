@@ -154,3 +154,13 @@ def sensor_a_imitate_sensor_b(sensor_a_name='WV02', sensor_b_name='GE01', meta=N
     # Send the keys (band names) of sensor_b to a function that retrieves the indices of the same keys from sensor_a
     band_indices_a = get_sensor_band_indices(band_names=band_names_b, sensor=sensor_a_name, meta=meta)
     return band_indices_a
+
+
+def slice_float_to_int(slice_float):
+    start = int(slice_float.start)
+    stop = int(slice_float.stop)
+    if slice_float.step is None:
+        step = None
+    else:
+        step = int(slice_float.step)
+    return slice(start, stop, step)
