@@ -76,15 +76,19 @@ The actual thesis is located in a separate private repository https://github.com
 - [X] Do a study of how tile sizes affect NIQE and Ma metrics. Hypothesis: Too small tile sizes are not good. This could probably be an appendix in the thesis if it shows something interesting. Conclusion: 512x512 is a good compromise when validating with NIQE and Ma. This is large enough to giver reasonable results, and still small enough to not take too much time and require too much GPU memory. It is also probably slightly favorable that 512 is a multiple of 128 (the size of training tiles), however this has not been studied.
 - [X] Redesign of tile generator to handle expected number of tiles per square meter as configuration metric instead of fixed number of tiles. This is a much more meaningful number.
 - [X] Several improvements on the tile input pipeline (class with instance variables instead of a series of functions with global variables... ugly -> less ugly)
+- [X] Refactoring all code into Python modules with Jupyter Notebooks designed to do the actual experiments
+ - Status: Done (at least enough for me to start the experiments)! This took way longer than initially planned, but lots of smaller issues have been identified and fixed.
 
 ### Work in progress
-- [ ] Refactoring all code into Python modules with Jupyter Notebooks designed to do the actual experiments
- - Status: This took way longer than initially planned, but lots of smaller issues have been identified and fixed. Hopefully I get a return on my investment when running the experiments. Currently collecting callbacks into a `logger.py` module.
+- [ ] Run `experiment-01` where I vary the number of channels in (8, 6, 4 and 3). This is mainly intended to identify how much is lost from 8 to 4. In the 4 (RGB+NIR) and 3 (RGB) variants GeoEye-1 is used as an additional validation set. 6 is also tested since these are the channels which spectral resolution overlaps with the panchromatic channel.
+ - Status: Running tile generation and pretraining with L1 loss. Will take a couple of weeks on two computers. Training for 400k steps with a fixed learning rate. Logging metrics and example tiles with TensorBoard and saving model weights to disk every 1000 steps.
 - [ ] Calculate `Ma`, `NIQE` and `PI` on a smaller proportion of the validation set (due to performance reasons)
+ - This must be done before GAN training of `experiment-01`. Can hopefully be done by calling on a batch iterator and computing the metrics only on every nth batch. If not possible this way I probably have to move these metrics out of `tf.keras.model.Model` class and into a separate callback.
 
 ### Next
-- [ ] In the loss function: Integrate feature extraction from VGG-19 model trained on satellite images as alternative to VGG-19 model trained on ImageNet 
+- [ ] Implement network interpolation between the PSNR-pretrained model and the GAN trained model as done in the ESRGAN paper
+ - This should be done as it should not be that difficult and will be pretty cool!
+- [ ] Mabye: In the loss function: Integrate feature extraction from VGG-19 model trained on satellite images as alternative to VGG-19 model trained on ImageNet 
   - [BigEarthNet](https://gitlab.tubit.tu-berlin.de/rsim/bigearthnet-19-models) looked promising, but will likely not work very well due to input being the 13 bands of the Sentinel-2 sensor. Mine should either be input of panchromatic or RGB since I am comparing with my SR generated panchromatic.
   - Update: If I have the time I will do this as an experiment, but it is not on the top of the priority list
-- [ ] Implement network interpolation between the PSNR-pretrained model and the GAN trained model as done in the ESRGAN paper
 
