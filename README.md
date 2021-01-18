@@ -1,7 +1,9 @@
 # multispectral-super-resolution
 This is a private working repository for my master's project: *Super-resolution of multispectral satellite images using artificial neural networks* (working title)
 
-The actual thesis is located in a separate private repository https://github.com/onordberg/thesis
+The actual thesis is located:
+- [Thesis in Overleaf](https://www.overleaf.com/read/jwckdjnmwtms)
+- [Thesis repository](https://github.com/onordberg/thesis)
 
 **Note:** Jupyter Notebook files named `*-display-version.ipynb` have cell outputs and it is recommended to view these if you want to see output of code.
 
@@ -80,6 +82,10 @@ The actual thesis is located in a separate private repository https://github.com
  - Status: Done (at least enough for me to start the experiments)! This took way longer than initially planned, but lots of smaller issues have been identified and fixed.
 
 ### Work in progress
+- [ ] Write report: 
+ - [Thesis in Overleaf](https://www.overleaf.com/read/jwckdjnmwtms)
+ - [Thesis repository](https://github.com/onordberg/thesis)
+
 - [ ] Run `experiment-01` where I vary the number of channels in (8, 6, 4 and 3). This is mainly intended to identify how much is lost from 8 to 4. In the 4 (RGB+NIR) and 3 (RGB) variants GeoEye-1 is used as an additional validation set. 6 is also tested since these are the channels which spectral resolution overlaps with the panchromatic channel.
  - Status: Running tile generation and pretraining with L1 loss. Will take a couple of weeks on two computers. Training for 400k steps with a fixed learning rate. Logging metrics and example tiles with TensorBoard and saving model weights to disk every 1000 steps.
 - [ ] Calculate `Ma`, `NIQE` and `PI` on a smaller proportion of the validation set (due to performance reasons)
