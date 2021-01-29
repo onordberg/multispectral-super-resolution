@@ -457,11 +457,10 @@ class EsrganModel(tf.keras.Model):
         G_metric_ssim = self.G_metric_ssim_f(hr, sr)
         self.G_metric_ssim_mean.update_state(G_metric_ssim)
 
-        # -1000.0 make any mistake very visible in tensorboard
-        # G_metric_ma, G_metric_niqe = tf.constant(-1000.0, dtype=tf.float32), tf.constant(-1000.0, dtype=tf.float32)
         if self.G_metric_ma_f is not None or self.G_metric_niqe_f is not None:
             modulo = tf.math.floormod(self.test_step_i, self.G_metric_ma_niqe_k_step)
 
+        # -1000.0 make any mistake very visible in tensorboard
         if self.G_metric_ma_f is not None:
             G_metric_ma = tf.cond(modulo == tf.constant(0, dtype=tf.int64),
                                   true_fn=lambda: tf.py_function(self.G_metric_ma_f, [sr], tf.float32),
