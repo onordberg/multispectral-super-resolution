@@ -90,10 +90,13 @@ class MatLabEngine:
                                                         self.matlab_engine.workspace['mu_prisparam'],
                                                         self.matlab_engine.workspace['cov_prisparam'])
         self.last_imgs = imgs
+
+        # Code needed to avoid nested structures in the output
         if isinstance(niqes, float):
-            niqes = [niqes]
+            niqes = np.array(niqes)
         else:
-            niqes = list(niqes[0])
+            niqes = np.array(niqes[0])
+        # print('matlab', type(niqes), niqes)
         return niqes
 
     def matlab_ma_metric(self, numpy_imgs):
@@ -105,10 +108,13 @@ class MatLabEngine:
         scipy.io.savemat(self.mat_cache_path_ma, {'imgs': imgs})
         ma_scores = self.matlab_engine.quality_predict_batch(str(self.mat_cache_path_ma))
         self.last_imgs = imgs
+
+        # Code needed to avoid nested structures in the output
         if isinstance(ma_scores, float):
-            ma_scores = [ma_scores]
+            ma_scores = np.array(ma_scores)
         else:
-            ma_scores = list(ma_scores[0])
+            ma_scores = np.array(ma_scores[0])
+        # print('matlab', type(ma_scores), ma_scores)
         return ma_scores
 
     def skvideo_niqe_metric(self, numpy_imgs):

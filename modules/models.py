@@ -264,8 +264,11 @@ class EsrganModel(tf.keras.Model):
         self.G_metric_niqe_mean = None
         self.G_metric_pi_f = None
         self.G_metric_pi_mean = None
+        self.G_metric_ma_niqe_k_step = None  # compute ma and niqe only every kth step. k is set here.
 
         self.matlab_engine = None
+
+        self.test_step_i = tf.Variable(0, trainable=False, dtype=tf.int64)
 
     def get_config(self):
         d = {'generator': self.G,
@@ -279,15 +282,25 @@ class EsrganModel(tf.keras.Model):
         raise NotImplementedError("Please use special_compile()")
 
     # https://towardsdatascience.com/tensorflow-2-2-and-a-custom-training-logic-16fa72934ac3
-    def special_compile(self, G_optimizer, D_optimizer,
-                        G_loss_pixel_w=0.01, G_loss_pixel_l1_l2='l1',
-
-                        G_loss_percep_w=1.0, G_loss_percep_l1_l2='l1', G_loss_percep_layer=54,
+    def special_compile(self,
+                        G_optimizer,
+                        D_optimizer,
+                        G_loss_pixel_w=0.01,
+                        G_loss_pixel_l1_l2='l1',
+                        G_loss_percep_w=1.0,
+                        G_loss_percep_l1_l2='l1',
+                        G_loss_percep_layer=54,
                         G_loss_percep_before_act=True,
-
                         G_loss_generator_w=0.005,
-                        metric_reg=False, metric_ma=True, metric_niqe=True,
-                        matlab_wd_path='modules/matlab', scale_mean=0, scaled_range=2.0, shave_width=4, **kwargs):
+                        metric_reg=False,
+                        metric_ma=True,
+                        metric_niqe=True,
+                        ma_niqe_proportion=0.1,
+                        matlab_wd_path='modules/matlab',
+                        scale_mean=0,
+                        scaled_range=2.0,
+                        shave_width=4,
+                        **kwargs):
         self.G_optimizer = G_optimizer
         self.D_optimizer = D_optimizer
 
@@ -341,6 +354,9 @@ class EsrganModel(tf.keras.Model):
         if metric_ma and metric_niqe:
             self.G_metric_pi_f = perceptual_index
             self.G_metric_pi_mean = tf.keras.metrics.Mean(name='PI')
+        if metric_ma or metric_niqe:
+            # compute ma and niqe only every kth step. k is set here by transforming proportion to every kth step:
+            self.G_metric_ma_niqe_k_step = int(1 / ma_niqe_proportion)
 
         super().compile(**kwargs)
 
@@ -441,24 +457,37 @@ class EsrganModel(tf.keras.Model):
         G_metric_ssim = self.G_metric_ssim_f(hr, sr)
         self.G_metric_ssim_mean.update_state(G_metric_ssim)
 
-        G_metric_ma, G_metric_niqe = tf.constant(0, dtype=tf.float32), tf.constant(0, dtype=tf.float32)
+        # -1000.0 make any mistake very visible in tensorboard
+        # G_metric_ma, G_metric_niqe = tf.constant(-1000.0, dtype=tf.float32), tf.constant(-1000.0, dtype=tf.float32)
+        if self.G_metric_ma_f is not None or self.G_metric_niqe_f is not None:
+            modulo = tf.math.floormod(self.test_step_i, self.G_metric_ma_niqe_k_step)
+
         if self.G_metric_ma_f is not None:
-            G_metric_ma = tf.py_function(self.G_metric_ma_f, [sr], [tf.float32])
-            assert not tf.executing_eagerly()  # Checks that the graph is static
-            self.G_metric_ma_mean.update_state(G_metric_ma)
-            assert not tf.executing_eagerly()  # Checks that the graph is static
+            G_metric_ma = tf.cond(modulo == tf.constant(0, dtype=tf.int64),
+                                  true_fn=lambda: tf.py_function(self.G_metric_ma_f, [sr], tf.float32),
+                                  false_fn=lambda: tf.constant(-1000.0, dtype=tf.float32))  # dummy value
+            tf.cond(modulo == tf.constant(0, dtype=tf.int64),
+                    true_fn=lambda: self.G_metric_ma_mean.update_state(G_metric_ma),
+                    false_fn=lambda: tf.constant(-1000.0, dtype=tf.float32))
 
         if self.G_metric_niqe_f is not None:
-            G_metric_niqe = tf.py_function(self.G_metric_niqe_f, [sr], [tf.float32])
-            assert not tf.executing_eagerly()  # Checks that the graph is static
-            self.G_metric_niqe_mean.update_state(G_metric_niqe)
+            G_metric_niqe = tf.cond(modulo == tf.constant(0, dtype=tf.int64),
+                                    true_fn=lambda: tf.py_function(self.G_metric_niqe_f, [sr], tf.float32),
+                                    false_fn=lambda: tf.constant(-1000.0, dtype=tf.float32))  # dummy value
+            tf.cond(modulo == tf.constant(0, dtype=tf.int64),
+                    true_fn=lambda: self.G_metric_niqe_mean.update_state(G_metric_niqe),
+                    false_fn=lambda: tf.constant(-1000.0, dtype=tf.float32))
 
         if self.G_metric_pi_f is not None:
-            G_metric_pi = self.G_metric_pi_f(G_metric_ma, G_metric_niqe)
-            assert not tf.executing_eagerly()  # Checks that the graph is static
-            self.G_metric_pi_mean.update_state(G_metric_pi)
+            G_metric_pi = tf.cond(modulo == tf.constant(0, dtype=tf.int64),
+                                  true_fn=lambda: self.G_metric_pi_f(G_metric_ma, G_metric_niqe),
+                                  false_fn=lambda: tf.constant(-1000.0, dtype=tf.float32))  # dummy value
+            tf.cond(modulo == tf.constant(0, dtype=tf.int64),
+                    true_fn=lambda:  self.G_metric_pi_mean.update_state(G_metric_pi),
+                    false_fn=lambda: tf.constant(-1000.0, dtype=tf.float32))
 
         metrics_to_report = {m.name: m.result() for m in self.metrics}
+        self.test_step_i.assign_add(1)
         return metrics_to_report
 
     @property
@@ -513,6 +542,7 @@ def build_esrgan_model(pretrain_weights_path,
                        metric_reg=False,
                        metric_ma=False,
                        metric_niqe=False,
+                       ma_niqe_proportion=0.1,
                        matlab_wd_path='modules/matlab',
                        scale_mean=0,
                        scaled_range=2.0,
@@ -534,15 +564,20 @@ def build_esrgan_model(pretrain_weights_path,
     gan_model = EsrganModel(generator, discriminator)
     gan_model.special_compile(tf.keras.optimizers.Adam(learning_rate=G_lr, beta_1=G_beta_1, beta_2=G_beta_2),
                               tf.keras.optimizers.Adam(learning_rate=D_lr, beta_1=D_beta_1, beta_2=D_beta_2),
-                              G_loss_pixel_w=G_loss_pixel_w, G_loss_pixel_l1_l2=G_loss_pixel_l1_l2,
-
-                              G_loss_percep_w=G_loss_percep_w, G_loss_percep_l1_l2=G_loss_percep_l1_l2,
+                              G_loss_pixel_w=G_loss_pixel_w,
+                              G_loss_pixel_l1_l2=G_loss_pixel_l1_l2,
+                              G_loss_percep_w=G_loss_percep_w,
+                              G_loss_percep_l1_l2=G_loss_percep_l1_l2,
                               G_loss_percep_layer=G_loss_percep_layer,  # 22 or 54
                               G_loss_percep_before_act=G_loss_percep_before_act,  # True
-
                               G_loss_generator_w=G_loss_generator_w,
-                              metric_reg=metric_reg, metric_ma=metric_ma, metric_niqe=metric_niqe,
-                              matlab_wd_path=matlab_wd_path, scale_mean=scale_mean, scaled_range=scaled_range,
+                              metric_reg=metric_reg,
+                              metric_ma=metric_ma,
+                              metric_niqe=metric_niqe,
+                              ma_niqe_proportion=ma_niqe_proportion,
+                              matlab_wd_path=matlab_wd_path,
+                              scale_mean=scale_mean,
+                              scaled_range=scaled_range,
                               shave_width=shave_width)
 
     # Actually build the graph by calling a dummy batch on the model
