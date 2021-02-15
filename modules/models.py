@@ -440,12 +440,15 @@ class EsrganModel(tf.keras.Model):
         # Forward pass through generator
         sr = self.G(lr, training=False)
 
+        # Since val/test set is of different dimension than train set anything related to the discriminator is disabled
         # Forward pass through the discriminator
         # hr_D_output = self.D(hr, training=False)
         # sr_D_output = self.D(sr, training=False)
 
         # Generator losses:
-        # self.generator_losses(hr, sr, hr_D_output, sr_D_output)
+        self.generator_losses(hr, sr,
+                              hr_D_output=tf.zeros_like(lr[0]),                # Dummy value to produce gen_loss=0
+                              sr_D_output=tf.ones_like(lr[0])*tf.float32.max)  # Dummy value to produce gen_loss=0
 
         # Discriminator losses:
         # self.discriminator_losses(hr_D_output, sr_D_output)
