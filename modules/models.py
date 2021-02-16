@@ -424,31 +424,34 @@ class EsrganModel(tf.keras.Model):
 
         # Don't report Ma's SR and NIQE metrics since they is not being evaluated in the training step
         if self.G_metric_ma_f is not None:
-            assert not tf.executing_eagerly()  # Checks that the graph is static
+            # assert not tf.executing_eagerly()  # Checks that the graph is static
             metrics_to_report.pop('Ma')
         if self.G_metric_niqe_f is not None:
             metrics_to_report.pop('NIQE')
         if self.G_metric_pi_f is not None:
             metrics_to_report.pop('PI')
-        assert not tf.executing_eagerly()  # Checks that the graph is static
+        # assert not tf.executing_eagerly()  # Checks that the graph is static
         return metrics_to_report
 
     def test_step(self, data):
-        assert not tf.executing_eagerly()  # Checks that the graph is static
+        # assert not tf.executing_eagerly()  # Checks that the graph is static
         lr, hr = data
 
         # Forward pass through generator
         sr = self.G(lr, training=False)
 
+        # Since val/test set is of different dimension than train set anything related to the discriminator is disabled
         # Forward pass through the discriminator
-        hr_D_output = self.D(hr, training=False)
-        sr_D_output = self.D(sr, training=False)
+        # hr_D_output = self.D(hr, training=False)
+        # sr_D_output = self.D(sr, training=False)
 
         # Generator losses:
-        self.generator_losses(hr, sr, hr_D_output, sr_D_output)
+        self.generator_losses(hr, sr,
+                              hr_D_output=tf.zeros_like(lr[0]),                # Dummy value to produce gen_loss=0
+                              sr_D_output=tf.ones_like(lr[0])*tf.float32.max)  # Dummy value to produce gen_loss=0
 
         # Discriminator losses:
-        self.discriminator_losses(hr_D_output, sr_D_output)
+        # self.discriminator_losses(hr_D_output, sr_D_output)
 
         # Metrics
         G_metric_psnr = self.G_metric_psnr_f(hr, sr)
