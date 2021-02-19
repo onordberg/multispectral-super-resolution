@@ -17,22 +17,24 @@ def esrgan_evaluate(model, dataset, steps=4, per_image=True):
             for i in range(batch_size):
                 if step == steps:
                     break
-                inp = (tf.expand_dims(batch[0][i], 0), tf.expand_dims(batch[1][i], 0))
-                res = model.test_step(inp)
+                x, y = tf.expand_dims(batch[0][i], 0), tf.expand_dims(batch[1][i], 0)
+                res = model.test_on_batch(x=x, y=y,
+                                          reset_metrics=True, return_dict=True)
                 for metric, value in res.items():
                     if metric not in results:
                         results[metric] = []
-                    results[metric].append(value.numpy())
+                    results[metric].append(value)
                 step += 1
 
         # Do forward passes for the whole mini-batch:
         else:
-            inp = batch
-            res = model.test_step(inp)
+            x, y = batch
+            res = model.test_on_batch(x=x, y=y,
+                                      reset_metrics=True, return_dict=True)
             for metric, value in res.items():
                 if metric not in results:
                     results[metric] = []
-                results[metric].append(value.numpy())
+                results[metric].append(value)
             step += 1
 
     return pd.DataFrame.from_dict(results)
