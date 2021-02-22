@@ -24,7 +24,8 @@ class GeotiffDataset:
                  cache_file=None,
                  repeat=True,
                  shuffle=True,
-                 shuffle_buffer_size=1000):
+                 shuffle_buffer_size=1000,
+                 build=True):
         self.tiles_path = tiles_path
         self.batch_size = batch_size
         self.ms_tile_shape = ms_tile_shape
@@ -48,7 +49,8 @@ class GeotiffDataset:
         else:
             self.mean_correction_bool = False
 
-        self.dataset = self.build_dataset()
+        if build:
+            self.dataset = self.build_dataset()
 
     def get_dataset(self):
         return self.dataset
@@ -66,8 +68,9 @@ class GeotiffDataset:
         ds = self.prepare_for_training(ds)
         return ds
 
-    def decode_geotiff(self, image_path, ms_or_pan):
-        image_path = pathlib.Path(image_path.numpy().decode())
+    def decode_geotiff(self, image_path, ms_or_pan, image_path_is_tensor=True):
+        if image_path_is_tensor:
+            image_path = pathlib.Path(image_path.numpy().decode())
         with rasterio.open(image_path) as src:
             img = src.read()
         img = rasterio.plot.reshape_as_image(img)  # from channels first to channels last
