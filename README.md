@@ -88,10 +88,10 @@ The actual thesis is located:
 
 - [ ] Run `experiment-01` where I vary the number of channels in (8, 6, 4 and 3). This is mainly intended to identify how much is lost from 8 to 4. In the 4 (RGB+NIR) and 3 (RGB) variants GeoEye-1 is used as an additional validation set. 6 is also tested since these are the channels which spectral resolution overlaps with the panchromatic channel.
  - Status: 
-  - [X] e01-3: 400k pre and 400k GAN
-  - [X] e01-4: 400k pre and 400k GAN
-  - [X] e01-6: 400k pre and 400k GAN
-  - [ ] e01-8: 400k pre and 200k GAN - need to redo GAN up to 400k steps
+   - [X] e01-3: 400k pre and 400k GAN
+   - [X] e01-4: 400k pre and 400k GAN
+   - [X] e01-6: 400k pre and 400k GAN
+   - [ ] e01-8: 400k pre and 200k GAN - need to redo GAN up to 400k steps
 - [ ] Evaluation on validation set. I have changed my approach from doing evaluation during training to doing evaluation after training. This better utilizes both machines. I have saved model weights every 1k steps so have full flexibility around validation. Currently running this validation.
 
 ### Next
