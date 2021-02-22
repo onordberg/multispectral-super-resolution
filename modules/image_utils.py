@@ -412,6 +412,15 @@ def ndarray_to_png(arr, png_path, scale=True):
                                           file_format='png', scale=scale)
 
 
+def ndarray_to_geotiff(arr, geotiff_path, rasterio_profile):
+    if isinstance(geotiff_path, str):
+        geotiff_path = pathlib.Path(geotiff_path)
+
+    arr = rasterio.plot.reshape_as_raster(arr)
+    with rasterio.open(geotiff_path, 'w', **rasterio_profile) as dst:
+        dst.write(arr)
+
+
 def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, stretch=True, sensor='WV02'):
     if isinstance(tif_path, str):
         tif_path = pathlib.Path(tif_path)
