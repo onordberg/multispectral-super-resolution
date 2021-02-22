@@ -421,10 +421,14 @@ def ndarray_to_geotiff(arr, geotiff_path, rasterio_profile):
         dst.write(arr)
 
 
-def geotiff_to_png(tif_path, ms_or_pan='pan', scale=True, stretch=True, sensor='WV02'):
+def geotiff_to_png(tif_path, png_path=None, ms_or_pan='pan', scale=True, stretch=True, sensor='WV02'):
     if isinstance(tif_path, str):
         tif_path = pathlib.Path(tif_path)
-    png_path = tif_path.with_suffix('.png')
+    if png_path is None:
+        png_path = tif_path.with_suffix('.png')
+    elif isinstance(png_path, str):
+        png_path = pathlib.Path(png_path)
+
     img = geotiff_to_ndarray(tif_path)
 
     if ms_or_pan == 'ms':

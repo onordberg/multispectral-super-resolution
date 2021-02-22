@@ -84,7 +84,8 @@ def esrgan_predict(model,
                    sr_factor=4,
                    copy_pan_img=False,
                    pan_img_path=None,
-                   output_dtype='uint16'):
+                   output_dtype='uint16',
+                   geotiff_or_png='geotiff'):
     if isinstance(ms_img_path, str):
         ms_img_path = pathlib.Path(ms_img_path)
     if isinstance(result_dir, str):
@@ -93,12 +94,6 @@ def esrgan_predict(model,
         pan_img_path = pathlib.Path(pan_img_path)
     filename = ms_img_path.stem
     result_dir.mkdir(parents=True, exist_ok=True)
-    # copy ms image file to the results dir for easier comparison
-    shutil.copy2(src=ms_img_path, dst=result_dir.joinpath(filename + '-ms.tif'))
-    if copy_pan_img:
-        if not isinstance(pan_img_path, pathlib.Path):
-            pan_img_path = ms_img_path.parents[1].joinpath('pan').joinpath(filename + '.tif')
-        shutil.copy2(src=pan_img_path, dst=result_dir.joinpath(filename + '-pan.tif'))
 
     # Grab the geo-profile from the ms file. Needed to be able to write the sr file to disk.
     # Preserves georeference information
@@ -140,7 +135,27 @@ def esrgan_predict(model,
     else:
         raise ValueError('only output_dtype uint16 and float32 supported')
     sr_img = sr_img[0,:,:,:]  # remove batch dimension
-    ndarray_to_geotiff(sr_img,
-                       geotiff_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.tif'),
-                       rasterio_profile=out_profile)
+
+    if copy_pan_img:
+        if not isinstance(pan_img_path, pathlib.Path):
+            pan_img_path = ms_img_path.parents[1].joinpath('pan').joinpath(filename + '.tif')
+
+    if geotiff_or_png == 'geotiff':
+        # copy ms image file to the results dir for easier comparison
+        shutil.copy2(src=ms_img_path, dst=result_dir.joinpath(filename + '-ms.tif'))
+        # copy pan image file to the results dir for easier comparison
+        if copy_pan_img:
+            shutil.copy2(src=pan_img_path, dst=result_dir.joinpath(filename + '-pan.tif'))
+
+        ndarray_to_geotiff(sr_img,
+                           geotiff_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.tif'),
+                           rasterio_profile=out_profile)
+    elif geotiff_or_png == 'png':
+        ndarray_to_png(sr_img, png_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.png'), scale=True)
+        geotiff_to_png(tif_path=ms_img_path,
+                       png_path=result_dir.joinpath(filename + '-ms.png'),
+                       ms_or_pan='ms', scale=True, stretch=True, sensor=sensor)
+        geotiff_to_png(tif_path=pan_img_path,
+                       png_path=result_dir.joinpath(filename + '-pan.png'),
+                       ms_or_pan='pan', scale=True, stretch=True, sensor=sensor)
     return sr_img
