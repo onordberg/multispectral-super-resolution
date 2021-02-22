@@ -87,9 +87,12 @@ The actual thesis is located:
  - [Thesis repository](https://github.com/onordberg/thesis)
 
 - [ ] Run `experiment-01` where I vary the number of channels in (8, 6, 4 and 3). This is mainly intended to identify how much is lost from 8 to 4. In the 4 (RGB+NIR) and 3 (RGB) variants GeoEye-1 is used as an additional validation set. 6 is also tested since these are the channels which spectral resolution overlaps with the panchromatic channel.
- - Status: Running tile generation and pretraining with L1 loss. Will take a couple of weeks on two computers. Training for 400k steps with a fixed learning rate. Logging metrics and example tiles with TensorBoard and saving model weights to disk every 1000 steps.
-- [ ] Calculate `Ma`, `NIQE` and `PI` on a smaller proportion of the validation set (due to performance reasons)
- - This must be done before GAN training of `experiment-01`. Can hopefully be done by calling on a batch iterator and computing the metrics only on every nth batch. If not possible this way I probably have to move these metrics out of `tf.keras.model.Model` class and into a separate callback.
+ - Status: 
+  - [X] e01-3: 400k pre and 400k GAN
+  - [X] e01-4: 400k pre and 400k GAN
+  - [X] e01-6: 400k pre and 400k GAN
+  - [ ] e01-8: 400k pre and 200k GAN - need to redo GAN up to 400k steps
+- [ ] Evaluation on validation set. I have changed my approach from doing evaluation during training to doing evaluation after training. This better utilizes both machines. I have saved model weights every 1k steps so have full flexibility around validation. Currently running this validation.
 
 ### Next
 - [ ] Implement network interpolation between the PSNR-pretrained model and the GAN trained model as done in the ESRGAN paper
