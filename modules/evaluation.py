@@ -99,7 +99,6 @@ def esrgan_predict(model,
         if not isinstance(pan_img_path, pathlib.Path):
             pan_img_path = ms_img_path.parents[1].joinpath('pan').joinpath(filename + '.tif')
         shutil.copy2(src=pan_img_path, dst=result_dir.joinpath(filename + '-pan.tif'))
-    print(pan_img_path)
 
     # Grab the geo-profile from the ms file. Needed to be able to write the sr file to disk.
     # Preserves georeference information
@@ -111,6 +110,7 @@ def esrgan_predict(model,
     # scale image transform
     out_profile['transform'] = out_profile['transform'] * out_profile['transform'].scale(1/sr_factor, 1/sr_factor)
 
+    # Easiest way to decode and scale a geotiff is to utilize the GeotiffDataset object
     ds = GeotiffDataset(tiles_path=ms_img_path,
                         batch_size=1,
                         ms_tile_shape=(None, None, None),
@@ -125,6 +125,7 @@ def esrgan_predict(model,
                         shuffle_buffer_size=0,
                         build=False)
     ms_img = ds.decode_geotiff(ms_img_path, ms_or_pan='ms', image_path_is_tensor=False)
+
     ms_img = np.expand_dims(ms_img, 0)
     sr_img = model.predict(ms_img)
     if output_dtype == 'uint16':
