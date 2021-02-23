@@ -8,7 +8,6 @@ import tensorflow as tf
 from modules.image_utils import *
 
 
-# TODO: Preserve filename through the process
 # TODO: Preserve georeference information through the process
 
 class GeotiffDataset:
@@ -25,7 +24,8 @@ class GeotiffDataset:
                  repeat=True,
                  shuffle=True,
                  shuffle_buffer_size=1000,
-                 build=True):
+                 build=True,
+                 include_file_paths=False):
         self.tiles_path = tiles_path
         self.batch_size = batch_size
         self.ms_tile_shape = ms_tile_shape
@@ -38,6 +38,7 @@ class GeotiffDataset:
         self.repeat = repeat
         self.shuffle = shuffle
         self.shuffle_buffer_size = shuffle_buffer_size
+        self.include_file_paths = include_file_paths
 
         if isinstance(self.band_selection, tuple) or isinstance(self.band_selection, list):
             self.band_selection_bool = True
@@ -99,7 +100,11 @@ class GeotiffDataset:
         # Removing first axis as this will create problems when batching later
         ms_img = tf.squeeze(ms_img, [0])
         pan_img = tf.squeeze(pan_img, [0])
-        return ms_img, pan_img
+
+        if self.include_file_paths:
+            return (ms_tile_path, ms_img), (pan_tile_path, pan_img)
+        else:
+            return ms_img, pan_img
 
     # https://www.tensorflow.org/tutorials/load_data/images
     def prepare_for_training(self, ds):
