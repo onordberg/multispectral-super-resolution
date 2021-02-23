@@ -9,20 +9,24 @@ from modules.tile_input_pipeline import GeotiffDataset
 from modules.image_utils import *
 
 
-def esrgan_evaluate(model, dataset, steps=4, per_image=True):
-    results = {}
+def esrgan_evaluate(model, dataset, steps='all', per_image=True, write_csv=False, csv_path=None):
+    results = {'ms_tile_path': [],
+               'pan_tile_path': []}
     step = 0
     for batch in dataset:
         if step == steps:
             break
-        batch_size = batch[0].shape[0]
+        batch_size = batch[0][0].shape[0]
 
         # Do forward passes for every single image, i.e. batch_size=1, instead of the whole mini-batch:
         if per_image:
             for i in range(batch_size):
                 if step == steps:
                     break
-                x, y = tf.expand_dims(batch[0][i], 0), tf.expand_dims(batch[1][i], 0)
+                x, y = tf.expand_dims(batch[0][1][i], 0), tf.expand_dims(batch[1][1][i], 0)
+                results['ms_tile_path'].append(batch[0][0][i].numpy())
+                results['pan_tile_path'].append(batch[1][0][i].numpy())
+
                 res = model.test_on_batch(x=x, y=y,
                                           reset_metrics=True, return_dict=True)
                 for metric, value in res.items():
@@ -33,7 +37,8 @@ def esrgan_evaluate(model, dataset, steps=4, per_image=True):
 
         # Do forward passes for the whole mini-batch:
         else:
-            x, y = batch
+            # paths to tiles not supported for the whole minibatch
+            x, y = batch[0][1], batch[1][1]
             res = model.test_on_batch(x=x, y=y,
                                       reset_metrics=True, return_dict=True)
             for metric, value in res.items():
@@ -41,8 +46,12 @@ def esrgan_evaluate(model, dataset, steps=4, per_image=True):
                     results[metric] = []
                 results[metric].append(value)
             step += 1
-
-    return pd.DataFrame.from_dict(results)
+    results = pd.DataFrame.from_dict(results)
+    if write_csv:
+        if isinstance(csv_path, str):
+            csv_path = pathlib.Path(csv_path)
+        results.to_csv(csv_path)
+    return results
 
 
 def esrgan_epoch_evaluator(esrgan_model,
