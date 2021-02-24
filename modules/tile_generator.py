@@ -114,10 +114,11 @@ def resize_sat_img_to_new_pixel_size(row, save_dir, new_pixel_size_pan=(1.0, 1.0
 
 def resize_all_sat_imgs_to_new_pixel_size(meta, save_dir, new_pixel_size_pan=(1.0, 1.0),
                                           sr_factor=4, resampling='nearest'):
-    meta.apply(resize_sat_img_to_new_pixel_size, axis=1,
-               save_dir=save_dir,
-               new_pixel_size_pan=new_pixel_size_pan,
-               sr_factor=sr_factor, resampling=resampling)
+    meta = meta.apply(resize_sat_img_to_new_pixel_size, axis=1,
+                      save_dir=save_dir,
+                      new_pixel_size_pan=new_pixel_size_pan,
+                      sr_factor=sr_factor, resampling=resampling)
+    return meta
 
 
 def allocate_tiles_by_expected(meta,
