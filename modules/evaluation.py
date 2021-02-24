@@ -4,16 +4,20 @@ import tensorflow as tf
 import rasterio
 import numpy as np
 import shutil
+import time
 
 from modules.tile_input_pipeline import GeotiffDataset
 from modules.image_utils import *
 
 
-def esrgan_evaluate(model, dataset, steps='all', per_image=True, write_csv=False, csv_path=None):
+def esrgan_evaluate(model, dataset, steps='all', per_image=True, write_csv=False, csv_path=None, verbose=0):
     results = {'ms_tile_path': [],
                'pan_tile_path': []}
     step = 0
     for batch in dataset:
+        start = 0.0
+        if verbose == 1:
+            start = time.time()
         if step == steps:
             break
         batch_size = batch[0][0].shape[0]
@@ -46,7 +50,13 @@ def esrgan_evaluate(model, dataset, steps='all', per_image=True, write_csv=False
                     results[metric] = []
                 results[metric].append(value)
             step += 1
+
+        if verbose == 1:
+            end = time.time()
+            print('Computed', batch_size, 'images in ', end - start, 'seconds')
+            print('Last image:', res)
     results = pd.DataFrame.from_dict(results)
+
     if write_csv:
         if isinstance(csv_path, str):
             csv_path = pathlib.Path(csv_path)
