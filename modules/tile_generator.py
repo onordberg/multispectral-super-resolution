@@ -6,6 +6,7 @@ import rasterio
 import rasterio.windows
 import geopandas
 from collections import Counter
+import shutil
 
 from modules.helpers import *
 from modules.cloudsea_classifier import *
@@ -45,56 +46,65 @@ def resize_sat_img_to_new_pixel_size(row, save_dir, new_pixel_size_pan=(1.0, 1.0
     ms_dir.mkdir(exist_ok=True)
     pan_dir = pathlib.Path(image_dir, 'pan')
     pan_dir.mkdir(exist_ok=True)
+    ms_path = pathlib.Path(ms_dir, str(image_string_UID + '.tif'))
+    pan_path = pathlib.Path(pan_dir, str(image_string_UID + '.tif'))
 
     # For resizing of image to new pixel size only the pan pixel size is used directly,
     # while the new ms pixel size is calculated from pan and the sr_factor.
     # This is done to avoid rounding errors and prioritize sr_factor to be exact
     old_pan_pixel_size = (row['pan_pixelHeight'], row['pan_pixelWidth'])
     old_ms_pixel_size = (row['ms_pixelHeight'], row['ms_pixelWidth'])
-    # assert pan_pixel_size[0] == pan_pixel_size[1]
-    pan_resize_factor = (old_pan_pixel_size[0] / new_pixel_size_pan[0],
-                         old_pan_pixel_size[1] / new_pixel_size_pan[1])
-    # print(pan_resize_factor)
-    ms_resize_factor = (old_ms_pixel_size[0] / (sr_factor * new_pixel_size_pan[0]),
-                        old_ms_pixel_size[1] / (sr_factor * new_pixel_size_pan[1]))
-    # print(old_ms_pixel_size[0]/old_pan_pixel_size[0])
-    # print(old_ms_pixel_size[0]*ms_resize_factor[0]/(old_pan_pixel_size[0]*pan_resize_factor[0]))
+    assert old_pan_pixel_size[0] == old_pan_pixel_size[1]
+    assert old_ms_pixel_size[0] == old_ms_pixel_size[1]
 
-    with rasterio.open(row['ms_tif_path'], 'r') as ms_src, rasterio.open(row['pan_tif_path'], 'r') as pan_src:
-        print('Dimensions before resize', (ms_src.count, ms_src.shape[0], ms_src.shape[1]),
-              (pan_src.count, pan_src.shape[0], pan_src.shape[1]))
-        print('Resize by factors (height, width):')
-        print('pan', pan_resize_factor, ', ms:', ms_resize_factor)
-        ms_img, ms_transform = resize_sat_img(ms_src,
-                                              rescale_factor=ms_resize_factor,
-                                              resampling=resampling)
-        pan_img, pan_transform = resize_sat_img(pan_src,
-                                                rescale_factor=pan_resize_factor,
-                                                resampling=resampling)
-        print('Dimensions after resize', ms_img.shape, pan_img.shape)
-        ms_path = pathlib.Path(ms_dir, str(image_string_UID + '.tif'))
-        pan_path = pathlib.Path(pan_dir, str(image_string_UID + '.tif'))
-        with rasterio.open(
-                ms_path, 'w',
-                driver='GTiff',
-                width=ms_img.shape[2],
-                height=ms_img.shape[1],
-                count=ms_img.shape[0],
-                dtype=ms_img.dtype,
-                crs=ms_src.crs,
-                transform=ms_transform) as ms_dst:
-            ms_dst.write(ms_img)
-        with rasterio.open(
-                pan_path, 'w',
-                driver='GTiff',
-                width=pan_img.shape[2],
-                height=pan_img.shape[1],
-                count=pan_img.shape[0],
-                dtype=pan_img.dtype,
-                crs=pan_src.crs,
-                transform=pan_transform) as pan_dst:
-            pan_dst.write(pan_img)
-    print()
+    if old_pan_pixel_size == new_pixel_size_pan:
+        shutil.copy2(src=pathlib.Path(row['ms_tif_path']), dst=ms_path)
+        shutil.copy2(src=pathlib.Path(row['pan_tif_path']), dst=pan_path)
+        print('new pixel size', new_pixel_size_pan[0], '== old pixel size', old_pan_pixel_size[0])
+        print('-> just copied tifs to', image_dir.as_posix())
+    else:
+        pan_resize_factor = (old_pan_pixel_size[0] / new_pixel_size_pan[0],
+                             old_pan_pixel_size[1] / new_pixel_size_pan[1])
+        # print(pan_resize_factor)
+        ms_resize_factor = (old_ms_pixel_size[0] / (sr_factor * new_pixel_size_pan[0]),
+                            old_ms_pixel_size[1] / (sr_factor * new_pixel_size_pan[1]))
+        # print(old_ms_pixel_size[0]/old_pan_pixel_size[0])
+        # print(old_ms_pixel_size[0]*ms_resize_factor[0]/(old_pan_pixel_size[0]*pan_resize_factor[0]))
+
+        with rasterio.open(row['ms_tif_path'], 'r') as ms_src, rasterio.open(row['pan_tif_path'], 'r') as pan_src:
+            print('Dimensions before resize', (ms_src.count, ms_src.shape[0], ms_src.shape[1]),
+                  (pan_src.count, pan_src.shape[0], pan_src.shape[1]))
+            print('Resize by factors (height, width):')
+            print('pan', pan_resize_factor, ', ms:', ms_resize_factor)
+            ms_img, ms_transform = resize_sat_img(ms_src,
+                                                  rescale_factor=ms_resize_factor,
+                                                  resampling=resampling)
+            pan_img, pan_transform = resize_sat_img(pan_src,
+                                                    rescale_factor=pan_resize_factor,
+                                                    resampling=resampling)
+            print('Dimensions after resize', ms_img.shape, pan_img.shape)
+            with rasterio.open(
+                    ms_path, 'w',
+                    driver='GTiff',
+                    width=ms_img.shape[2],
+                    height=ms_img.shape[1],
+                    count=ms_img.shape[0],
+                    dtype=ms_img.dtype,
+                    crs=ms_src.crs,
+                    transform=ms_transform) as ms_dst:
+                ms_dst.write(ms_img)
+            with rasterio.open(
+                    pan_path, 'w',
+                    driver='GTiff',
+                    width=pan_img.shape[2],
+                    height=pan_img.shape[1],
+                    count=pan_img.shape[0],
+                    dtype=pan_img.dtype,
+                    crs=pan_src.crs,
+                    transform=pan_transform) as pan_dst:
+                pan_dst.write(pan_img)
+            print('Saved resized versions to', image_dir.as_posix())
+        print()
 
     # Update paths to the new resized versions
     row['ms_tif_path'] = ms_path.absolute()
