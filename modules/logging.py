@@ -195,9 +195,9 @@ class LrHrSrImageCallback(tf.keras.callbacks.Callback):
                     break
                 self.batches[ds_name].append(batch)  # Save batches in "raw" form to be used when predicting sr
 
-                # Custom code needed to handle particulars of experiment-01 since this experiment manipulates the
+                # Custom code needed to handle particulars of some experiments since they manipulate the
                 # band config of the ms images:
-                if self.tag[:3] == 'e01':
+                if self.tag[:3] in ('e01', 'e02', 'e03', 'e04'):
                     sensor, rgb_bands = self.experiment_01_rgb_bands(batch[0])
                 else:
                     sensor = ds_name
