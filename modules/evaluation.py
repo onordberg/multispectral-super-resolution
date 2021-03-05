@@ -60,6 +60,8 @@ def esrgan_evaluate(model, dataset, steps='all', per_image=True, write_csv=False
     if write_csv:
         if isinstance(csv_path, str):
             csv_path = pathlib.Path(csv_path)
+        csv_dir = csv_path.parents[0]
+        csv_dir.mkdir(parents=True, exist_ok=True)
         results.to_csv(csv_path)
     return results
 
@@ -71,6 +73,7 @@ def esrgan_epoch_evaluator(esrgan_model,
                            n_epochs,
                            first_epoch,
                            steps_per_epoch,
+                           k_epoch,
                            csv_dir,
                            per_image=True):
     if isinstance(model_weights_dir, str):
@@ -79,10 +82,16 @@ def esrgan_epoch_evaluator(esrgan_model,
         csv_dir = pathlib.Path(csv_dir)
     csv_dir.mkdir(exist_ok=True, parents=True)
 
+    # Some hacks to handle start epoch 0 and start epoch 1
     if first_epoch == 1:
-        n_epochs += first_epoch
+        n_epochs += 1
+        second = k_epoch
+    elif first_epoch == 0:
+        second = k_epoch - 1
+    epochs = [[first_epoch], list(range(second, n_epochs, k))]
+    epochs = [item for sublist in epochs for item in sublist]  # flatten list
 
-    for i in range(first_epoch, n_epochs):
+    for i in epochs:
         filename = model_weight_prefix + str(i).zfill(2)
         model_weights_path = model_weights_dir.joinpath(filename + '.h5')
         esrgan_model.G.load_weights(model_weights_path)
