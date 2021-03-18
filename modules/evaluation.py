@@ -75,7 +75,8 @@ def esrgan_epoch_evaluator(esrgan_model,
                            steps_per_epoch,
                            k_epoch,
                            csv_dir,
-                           per_image=True):
+                           per_image=True,
+                           verbose=0):
     if isinstance(model_weights_dir, str):
         model_weights_dir = pathlib.Path(model_weights_dir)
     if isinstance(csv_dir, str):
@@ -88,15 +89,18 @@ def esrgan_epoch_evaluator(esrgan_model,
         second = k_epoch
     elif first_epoch == 0:
         second = k_epoch - 1
-    epochs = [[first_epoch], list(range(second, n_epochs, k))]
+    epochs = [[first_epoch], list(range(second, n_epochs, k_epoch))]
     epochs = [item for sublist in epochs for item in sublist]  # flatten list
 
     for i in epochs:
-        filename = model_weight_prefix + str(i).zfill(2)
+        if 'gan' in model_weight_prefix:
+            filename = model_weight_prefix + 'G-' + str(i)
+        else:
+            filename = model_weight_prefix + str(i).zfill(2)
         model_weights_path = model_weights_dir.joinpath(filename + '.h5')
         esrgan_model.G.load_weights(model_weights_path)
         print('Start evaluation of epoch', i, ', model weights', model_weights_path)
-        results = esrgan_evaluate(esrgan_model, dataset, steps=steps_per_epoch, per_image=per_image)
+        results = esrgan_evaluate(esrgan_model, dataset, steps=steps_per_epoch, per_image=per_image, verbose=verbose)
         csv_path = csv_dir.joinpath(filename + '.csv')
         results.to_csv(csv_path)
         print('Saved evaluation csv for epoch', i, '@', csv_path)
