@@ -25,7 +25,9 @@ class GeotiffDataset:
                  shuffle=True,
                  shuffle_buffer_size=1000,
                  build=True,
-                 include_file_paths=False):
+                 include_file_paths=False,
+                 augment_flip=False,
+                 augment_rotate=False):
         self.tiles_path = tiles_path
         self.batch_size = batch_size
         self.ms_tile_shape = ms_tile_shape
@@ -39,6 +41,8 @@ class GeotiffDataset:
         self.shuffle = shuffle
         self.shuffle_buffer_size = shuffle_buffer_size
         self.include_file_paths = include_file_paths
+        self.augment_flip = augment_flip
+        self.augment_rotate = augment_rotate
 
         if isinstance(self.band_selection, tuple) or isinstance(self.band_selection, list):
             self.band_selection_bool = True
@@ -63,8 +67,12 @@ class GeotiffDataset:
             ds = tf.data.Dataset.list_files(file_pattern, shuffle=True)
         else:
             ds = tf.data.Dataset.list_files(file_pattern, shuffle=False)
-        ds = ds.map(self.process_path,
-                    num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        ds = ds.map(self.process_path, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+
+        if self.augment_rotate:
+            ds = ds.map(self.random_flip, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        if self.augment_flip:
+            ds = ds.map(self.random_rotate, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
         ds = self.prepare_for_training(ds)
         return ds
@@ -88,6 +96,28 @@ class GeotiffDataset:
                            print_ranges=False,
                            return_range_only=False)
         return img
+
+    def random_flip(self, ms, pan):
+        if self.include_file_paths:
+            ms_tile_path, ms_img = ms
+            pan_tile_path, pan_img = pan
+        else:
+            ms_img = ms
+            pan_img = pan
+        flip_left_right = tf.random.uniform(shape=[], minval=0, maxval=1, dtype=tf.int32)
+        flip_up_down = tf.random.uniform(shape=[], minval=0, maxval=1, dtype=tf.int32)
+        tf.print(flip_left_right)
+        tf.print(flip_up_down)
+        if flip_left_right == 1:
+            ms_img = tf.image.flip_left_right(ms_img)
+            pan_img = tf.image.flip_left_right(pan_img)
+        if flip_up_down == 1:
+            ms_img = tf.image.flip_up_down(ms_img)
+            pan_img = tf.image.flip_up_down(pan_img)
+        if self.include_file_paths:
+            return (ms_tile_path, ms_img), (pan_tile_path, pan_img)
+        else:
+            return ms_img, pan_img
 
     def process_path(self, ms_tile_path):
         # img_string_UID = tf.strings.split(ms_tile_path, os.sep)[-3]
