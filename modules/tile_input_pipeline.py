@@ -69,12 +69,30 @@ class GeotiffDataset:
             ds = tf.data.Dataset.list_files(file_pattern, shuffle=False)
         ds = ds.map(self.process_path, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-        if self.augment_rotate:
-            ds = ds.map(self.random_flip, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        # File caching
+        if isinstance(self.cache_file, str):
+            ds = ds.cache(self.cache_file)
+        # Memory caching (both file and memory can be combined)
+        if self.cache_memory:
+            ds = ds.cache()
+        if self.shuffle:
+            ds = ds.shuffle(buffer_size=self.shuffle_buffer_size)
+
+        # Repeat forever
+        if self.repeat:
+            ds = ds.repeat()
+
+        # Augmentation (after caching)
         if self.augment_flip:
+            ds = ds.map(self.random_flip, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        if self.random_rotate:
             ds = ds.map(self.random_rotate, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-        ds = self.prepare_for_training(ds)
+        # Concatenate into a mini-batch
+        ds = ds.batch(self.batch_size)
+
+        # `prefetch` lets the dataset fetch batches in the background while the model is training.
+        ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         return ds
 
     def decode_geotiff(self, image_path, ms_or_pan, image_path_is_tensor=True):
@@ -104,16 +122,30 @@ class GeotiffDataset:
         else:
             ms_img = ms
             pan_img = pan
-        flip_left_right = tf.random.uniform(shape=[], minval=0, maxval=1, dtype=tf.int32)
-        flip_up_down = tf.random.uniform(shape=[], minval=0, maxval=1, dtype=tf.int32)
-        tf.print(flip_left_right)
-        tf.print(flip_up_down)
+        flip_left_right = tf.random.uniform(shape=[], minval=0, maxval=2, dtype=tf.int32)
+        flip_up_down = tf.random.uniform(shape=[], minval=0, maxval=2, dtype=tf.int32)
+
         if flip_left_right == 1:
             ms_img = tf.image.flip_left_right(ms_img)
             pan_img = tf.image.flip_left_right(pan_img)
         if flip_up_down == 1:
             ms_img = tf.image.flip_up_down(ms_img)
             pan_img = tf.image.flip_up_down(pan_img)
+        if self.include_file_paths:
+            return (ms_tile_path, ms_img), (pan_tile_path, pan_img)
+        else:
+            return ms_img, pan_img
+
+    def random_rotate(self, ms, pan):
+        if self.include_file_paths:
+            ms_tile_path, ms_img = ms
+            pan_tile_path, pan_img = pan
+        else:
+            ms_img = ms
+            pan_img = pan
+        rotation = tf.random.uniform(shape=[], minval=0, maxval=4, dtype=tf.int32)
+        ms_img = tf.image.rot90(ms_img, k=rotation)
+        pan_img = tf.image.rot90(pan_img, k=rotation)
         if self.include_file_paths:
             return (ms_tile_path, ms_img), (pan_tile_path, pan_img)
         else:
@@ -136,23 +168,23 @@ class GeotiffDataset:
         else:
             return ms_img, pan_img
 
-    # https://www.tensorflow.org/tutorials/load_data/images
-    def prepare_for_training(self, ds):
-        # File caching
-        if isinstance(self.cache_file, str):
-            ds = ds.cache(self.cache_file)
-        # Memory caching (both file and memory can be combined)
-        if self.cache_memory:
-            ds = ds.cache()
-        if self.shuffle:
-            ds = ds.shuffle(buffer_size=self.shuffle_buffer_size)
-        # Repeat forever
-        if self.repeat:
-            ds = ds.repeat()
-        ds = ds.batch(self.batch_size)
-        # `prefetch` lets the dataset fetch batches in the background while the model is training.
-        ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-        return ds
+    # # https://www.tensorflow.org/tutorials/load_data/images
+    # def prepare_for_training(self, ds):
+    #     # File caching
+    #     if isinstance(self.cache_file, str):
+    #         ds = ds.cache(self.cache_file)
+    #     # Memory caching (both file and memory can be combined)
+    #     if self.cache_memory:
+    #         ds = ds.cache()
+    #     if self.shuffle:
+    #         ds = ds.shuffle(buffer_size=self.shuffle_buffer_size)
+    #     # Repeat forever
+    #     if self.repeat:
+    #         ds = ds.repeat()
+    #     ds = ds.batch(self.batch_size)
+    #     # `prefetch` lets the dataset fetch batches in the background while the model is training.
+    #     ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    #     return ds
 
     def get_scaler_output_range(self, print_ranges=False):
         dummy_arr = np.zeros(1)
