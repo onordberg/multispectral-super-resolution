@@ -197,7 +197,7 @@ class LrHrSrImageCallback(tf.keras.callbacks.Callback):
 
                 # Custom code needed to handle particulars of some experiments since they manipulate the
                 # band config of the ms images:
-                if self.tag[:3] in ('e01', 'e02', 'e03', 'e04', 'e05'):
+                if self.tag[:3] in ('e01', 'e02', 'e03', 'e04', 'e05', 'e06', 'e07', 'e08'):
                     sensor, rgb_bands = self.experiment_01_rgb_bands(batch[0])
                 else:
                     sensor = ds_name
