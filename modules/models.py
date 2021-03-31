@@ -265,6 +265,7 @@ class EsrganModel(tf.keras.Model):
         self.G_metric_pi_f = None
         self.G_metric_pi_mean = None
         self.G_metric_ma_niqe_k_step = None  # compute ma and niqe only every kth step. k is set here.
+        self.G_metric_ma_niqe_hr = None
 
         self.matlab_engine = None
 
@@ -300,6 +301,7 @@ class EsrganModel(tf.keras.Model):
                         scale_mean=0,
                         scaled_range=2.0,
                         shave_width=4,
+                        metric_ma_niqe_hr=False,
                         **kwargs):
         self.G_optimizer = G_optimizer
         self.D_optimizer = D_optimizer
@@ -357,6 +359,7 @@ class EsrganModel(tf.keras.Model):
         if metric_ma or metric_niqe:
             # compute ma and niqe only every kth step. k is set here by transforming proportion to every kth step:
             self.G_metric_ma_niqe_k_step = int(1 / ma_niqe_proportion)
+            self.G_metric_ma_niqe_hr = metric_ma_niqe_hr
 
         super().compile(**kwargs)
 
@@ -463,10 +466,17 @@ class EsrganModel(tf.keras.Model):
         if self.G_metric_ma_f is not None or self.G_metric_niqe_f is not None:
             modulo = tf.math.floormod(self.test_step_i, self.G_metric_ma_niqe_k_step)
 
+            # Ma and NIQE computed on hr image instead of sr image
+            if self.G_metric_ma_niqe_hr:
+                image = hr
+                # tf.print(image)
+            else:
+                image = sr
+
         # -1000.0 make any mistake very visible in tensorboard
         if self.G_metric_ma_f is not None:
             G_metric_ma = tf.cond(modulo == tf.constant(0, dtype=tf.int64),
-                                  true_fn=lambda: tf.py_function(self.G_metric_ma_f, [sr], tf.float32),
+                                  true_fn=lambda: tf.py_function(self.G_metric_ma_f, [image], tf.float32),
                                   false_fn=lambda: tf.constant(-1000.0, dtype=tf.float32))  # dummy value
             tf.cond(modulo == tf.constant(0, dtype=tf.int64),
                     true_fn=lambda: self.G_metric_ma_mean.update_state(G_metric_ma),
@@ -474,7 +484,7 @@ class EsrganModel(tf.keras.Model):
 
         if self.G_metric_niqe_f is not None:
             G_metric_niqe = tf.cond(modulo == tf.constant(0, dtype=tf.int64),
-                                    true_fn=lambda: tf.py_function(self.G_metric_niqe_f, [sr], tf.float32),
+                                    true_fn=lambda: tf.py_function(self.G_metric_niqe_f, [image], tf.float32),
                                     false_fn=lambda: tf.constant(-1000.0, dtype=tf.float32))  # dummy value
             tf.cond(modulo == tf.constant(0, dtype=tf.int64),
                     true_fn=lambda: self.G_metric_niqe_mean.update_state(G_metric_niqe),
@@ -548,7 +558,8 @@ def build_esrgan_model(pretrain_weights_path,
                        matlab_wd_path='modules/matlab',
                        scale_mean=0,
                        scaled_range=2.0,
-                       shave_width=4):
+                       shave_width=4,
+                       metric_ma_niqe_hr=False):
     generator = build_generator(pretrain_or_gan='gan',
                                 n_channels_in=n_channels_in,
                                 n_channels_out=n_channels_out,
@@ -580,7 +591,8 @@ def build_esrgan_model(pretrain_weights_path,
                               matlab_wd_path=matlab_wd_path,
                               scale_mean=scale_mean,
                               scaled_range=scaled_range,
-                              shave_width=shave_width)
+                              shave_width=shave_width,
+                              metric_ma_niqe_hr=metric_ma_niqe_hr)
 
     # Actually build the graph by calling a dummy batch on the model
     dummy_batch = tf.zeros((1, 24, 24, n_channels_in), dtype=tf.float32)
