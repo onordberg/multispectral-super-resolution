@@ -61,28 +61,40 @@ class GeotiffDataset:
         return self.dataset
 
     def build_dataset(self):
-        file_pattern = str(pathlib.Path(self.tiles_path).joinpath(self.sensor + '*', 'ms*', '*.tif'))
-        # print(file_pattern)
+        # Find and list all MS patches in the specified directory
+        file_pattern = str(pathlib.Path(self.tiles_path).joinpath(
+            self.sensor + '*', 'ms*', '*.tif'))
         if self.shuffle:
+            # Shuffle the list of files during training
             ds = tf.data.Dataset.list_files(file_pattern, shuffle=True)
         else:
+            # Option to not shuffle during inference
             ds = tf.data.Dataset.list_files(file_pattern, shuffle=False)
+
+        # Turn list of files into paired arrays of MS and PAN patches
+        # This mapping calls several methods that read GeoTIFFs, select MS bands,
+        # scale the pixels from int16 to float32 and massage the arrays in different ways
+        # to comply with tf.data shape requirements
         ds = ds.map(self.process_path, num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-        # File caching
+        # File caching. Turning on enables only performing time consuming above operations once.
         if isinstance(self.cache_file, str):
             ds = ds.cache(self.cache_file)
-        # Memory caching (both file and memory can be combined)
+        # Memory caching (both file and memory can be combined).
+        # System RAM limits the size of the memory cache.
+        # The size is defined by the shuffle buffer size (5 lines down)
         if self.cache_memory:
             ds = ds.cache()
+        # Shuffle in memory. Necessary during training.
         if self.shuffle:
             ds = ds.shuffle(buffer_size=self.shuffle_buffer_size)
 
-        # Repeat forever
+        # Repeat forever. Necessary if epochs during training is set to something else
+        # than the whole training set
         if self.repeat:
             ds = ds.repeat()
 
-        # Augmentation (after caching)
+        # Augmentation (after caching). Only using highly optimized tf functions.
         if self.augment_flip:
             ds = ds.map(self.random_flip, num_parallel_calls=tf.data.experimental.AUTOTUNE)
         if self.random_rotate:
@@ -91,7 +103,7 @@ class GeotiffDataset:
         # Concatenate into a mini-batch
         ds = ds.batch(self.batch_size)
 
-        # `prefetch` lets the dataset fetch batches in the background while the model is training.
+        # Prefetch lets the dataset fetch batches in the background using CPU during training.
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
         return ds
 
