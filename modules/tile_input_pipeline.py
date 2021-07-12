@@ -180,24 +180,6 @@ class GeotiffDataset:
         else:
             return ms_img, pan_img
 
-    # # https://www.tensorflow.org/tutorials/load_data/images
-    # def prepare_for_training(self, ds):
-    #     # File caching
-    #     if isinstance(self.cache_file, str):
-    #         ds = ds.cache(self.cache_file)
-    #     # Memory caching (both file and memory can be combined)
-    #     if self.cache_memory:
-    #         ds = ds.cache()
-    #     if self.shuffle:
-    #         ds = ds.shuffle(buffer_size=self.shuffle_buffer_size)
-    #     # Repeat forever
-    #     if self.repeat:
-    #         ds = ds.repeat()
-    #     ds = ds.batch(self.batch_size)
-    #     # `prefetch` lets the dataset fetch batches in the background while the model is training.
-    #     ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
-    #     return ds
-
     def get_scaler_output_range(self, print_ranges=False):
         dummy_arr = np.zeros(1)
         output_range = input_scaler(dummy_arr,
