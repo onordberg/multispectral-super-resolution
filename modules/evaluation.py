@@ -162,8 +162,18 @@ def esrgan_predict(model,
                                uint_bit_depth=11,
                                mean_correction=isinstance(mean_correction, float),
                                mean=mean_correction)
+        png_scale = False
     elif output_dtype == 'float32':
         out_profile['dtype'] = 'float32'
+    elif output_dtype == 'uint8' and geotiff_or_png == 'png':
+        # Special case to allow 8 bit pngs
+        sr_img = output_scaler(sr_img,
+                               radius=1.0,
+                               output_dtype='uint16',
+                               uint_bit_depth=11,
+                               mean_correction=isinstance(mean_correction, float),
+                               mean=mean_correction)
+        png_scale = True
     else:
         raise ValueError('only output_dtype uint16 and float32 supported')
     sr_img = sr_img[0,:,:,:]  # remove batch dimension
@@ -183,11 +193,11 @@ def esrgan_predict(model,
                            geotiff_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.tif'),
                            rasterio_profile=out_profile)
     elif geotiff_or_png == 'png':
-        ndarray_to_png(sr_img, png_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.png'), scale=True)
+        ndarray_to_png(sr_img, png_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.png'), scale=png_scale)
         geotiff_to_png(tif_path=ms_img_path,
                        png_path=result_dir.joinpath(filename + '-ms.png'),
-                       ms_or_pan='ms', scale=True, stretch=True, sensor=sensor)
+                       ms_or_pan='ms', scale=png_scale, stretch=True, sensor=sensor)
         geotiff_to_png(tif_path=pan_img_path,
                        png_path=result_dir.joinpath(filename + '-pan.png'),
-                       ms_or_pan='pan', scale=True, stretch=True, sensor=sensor)
+                       ms_or_pan='pan', scale=png_scale, stretch=True, sensor=sensor)
     return sr_img
