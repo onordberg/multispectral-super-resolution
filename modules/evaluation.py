@@ -117,7 +117,8 @@ def esrgan_predict(model,
                    copy_pan_img=False,
                    pan_img_path=None,
                    output_dtype='uint16',
-                   geotiff_or_png='geotiff'):
+                   geotiff_or_png='geotiff',
+                   suffix=None):
     if isinstance(ms_img_path, str):
         ms_img_path = pathlib.Path(ms_img_path)
     if isinstance(result_dir, str):
@@ -193,7 +194,10 @@ def esrgan_predict(model,
                            geotiff_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.tif'),
                            rasterio_profile=out_profile)
     elif geotiff_or_png == 'png':
-        ndarray_to_png(sr_img, png_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.png'), scale=png_scale)
+        if isinstance(suffix, str):
+            ndarray_to_png(sr_img, png_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + suffix + '.png'), scale=png_scale)
+        else:
+            ndarray_to_png(sr_img, png_path=result_dir.joinpath(filename + '-sr-' + pre_or_gan + '.png'), scale=png_scale)
         geotiff_to_png(tif_path=ms_img_path,
                        png_path=result_dir.joinpath(filename + '-ms.png'),
                        ms_or_pan='ms', scale=png_scale, stretch=True, sensor=sensor)
