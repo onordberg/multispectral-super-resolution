@@ -5,6 +5,7 @@ import functools
 from modules.losses_metrics import *
 from modules.matlab_metrics import *
 
+# ESRGAN Core component code based on https://github.com/peteryuX/esrgan-tf2
 
 def _regularizer(weights_decay=5e-4):
     return tf.keras.regularizers.l2(weights_decay)
